@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import axios from 'axios';
 
 const ALLOWED_DOMAINS = [
-  'frosireps.eu',
-  'www.frosireps.eu',
+  'hxgn.pl',
+  'www.hxgn.pl',
   'localhost:3000'
 ];
 
