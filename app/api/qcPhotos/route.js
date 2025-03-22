@@ -2,109 +2,123 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const ALLOWED_DOMAINS = [
-  'hxgn.pl',
-  'www.hxgn.pl',
-  'localhost:3000'
+// Konfiguracja
+const KAKOBUY_TOKEN = process.env.KAKOBUY_TOKEN || 'db70674ff41f4dda5266d09e8a275b04';
+const API_TIMEOUT = 10000; // 10 sekund
+const SUPPORTED_DOMAINS = [
+  'taobao.com',
+  'tmall.com',
+  'weidian.com',
+  '1688.com'
 ];
 
-const RATE_LIMIT = {
-  windowMs: 15 * 60 * 1000, // 15 minut
-  max: 100 // Limit do 100 żądań na IP
+// Walidacja URL
+const isValidProductUrl = (url) => {
+  try {
+    const parsedUrl = new URL(url);
+    return SUPPORTED_DOMAINS.some(domain => parsedUrl.hostname.includes(domain));
+  } catch {
+    return false;
+  }
 };
 
-const ipRequests = new Map();
+// Formatowanie błędów
+const errorResponse = (message, status = 400) => {
+  return NextResponse.json(
+    { status: 'error', code: message.code, message: message.text },
+    { status }
+  );
+};
 
-export async function OPTIONS(request) {
-  const origin = request.headers.get('origin') || '';
-  const allowed = ALLOWED_DOMAINS.some(domain => origin.includes(domain));
-  
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': allowed ? origin : '',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Vary': 'Origin'
-    }
-  });
-}
+const errorMessages = {
+  missing_url: { code: 'MISSING_URL', text: 'URL produktu jest wymagany' },
+  invalid_url: { code: 'INVALID_URL', text: 'Nieobsługiwany URL produktu' },
+  api_failure: { code: 'API_FAILURE', text: 'Błąd zewnętrznego API' },
+  invalid_data: { code: 'INVALID_DATA', text: 'Nieprawidłowy format danych' },
+  server_error: { code: 'SERVER_ERROR', text: 'Wewnętrzny błąd serwera' }
+};
 
 export async function POST(request) {
   try {
-    // Weryfikacja Origin
-    const origin = request.headers.get('origin') || '';
-    const originDomain = new URL(origin).hostname;
+    // Parsowanie body
+    const body = await request.json().catch(() => null);
+    if (!body) return errorResponse(errorMessages.missing_url);
+
+    const { url } = body;
     
-    if (!ALLOWED_DOMAINS.includes(originDomain)) {
-      return new NextResponse(
-        JSON.stringify({ status: 'error', message: 'Access denied' }),
-        { status: 403 }
-      );
+    // Walidacja URL
+    if (!url) return errorResponse(errorMessages.missing_url);
+    if (!isValidProductUrl(url)) {
+      return errorResponse(errorMessages.invalid_url);
     }
 
-    // Weryfikacja Referer
-    const referer = request.headers.get('referer') || '';
-    if (!referer.startsWith(process.env.NEXTAUTH_URL)) {
-      return new NextResponse(
-        JSON.stringify({ status: 'error', message: 'Invalid request source' }),
-        { status: 403 }
-      );
-    }
-
-    // Rate limiting
-    const clientIP = request.headers.get('x-forwarded-for') || '127.0.0.1';
-    const now = Date.now();
-    
-    if (ipRequests.has(clientIP)) {
-      const record = ipRequests.get(clientIP);
-      if (now - record.firstRequest < RATE_LIMIT.windowMs) {
-        if (record.count >= RATE_LIMIT.max) {
-          return new NextResponse(
-            JSON.stringify({ status: 'error', message: 'Too many requests' }),
-            { status: 429 }
-          );
-        }
-        record.count++;
-      } else {
-        ipRequests.set(clientIP, { count: 1, firstRequest: now });
-      }
-    } else {
-      ipRequests.set(clientIP, { count: 1, firstRequest: now });
-    }
-
-    // Przetwarzanie żądania
-    const { url } = await request.json();
-    
+    // Wywołanie API Kakobuy
     const response = await axios.get('https://open.kakobuy.com/open/pic/qcImage', {
-      params: { 
-        token: process.env.KAKOBUY_TOKEN,
-        goodsUrl: url 
+      params: { token: KAKOBUY_TOKEN, goodsUrl: url },
+      timeout: API_TIMEOUT,
+      validateStatus: (status) => status < 500
+    });
+
+    // Obsługa odpowiedzi Kakobuy
+    if (response.data.status === 'error') {
+      return errorResponse({
+        code: 'KAKOBUY_ERROR',
+        text: response.data.message || 'Błąd zewnętrznego API'
+      }, 502);
+    }
+
+    // Walidacja struktury danych
+    if (!Array.isArray(response.data?.data)) {
+      return errorResponse(errorMessages.invalid_data);
+    }
+
+    // Przetwarzanie zdjęć
+    const photos = response.data.data
+      .filter(item => item?.image_url?.startsWith('http'))
+      .map(item => ({
+        url: item.image_url,
+        date: item.qc_date || 'Nieznana data',
+        product: item.product_name || 'Brak nazwy produktu'
+      }));
+
+    if (photos.length === 0) {
+      return errorResponse({
+        code: 'NO_PHOTOS',
+        text: 'Nie znaleziono zdjęć QC dla tego produktu'
+      }, 404);
+    }
+
+    // Sukces
+    return NextResponse.json({
+      status: 'success',
+      data: {
+        count: photos.length,
+        photos
       }
     });
 
-    return new NextResponse(
-      JSON.stringify({ 
-        status: 'success', 
-        data: response.data 
-      }),
-      {
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': origin,
-          'Content-Security-Policy': "default-src 'self'",
-          'X-Content-Type-Options': 'nosniff'
-        }
-      }
-    );
-
   } catch (error) {
-    return new NextResponse(
-      JSON.stringify({ 
-        status: 'error', 
-        message: 'Internal server error' 
-      }),
-      { status: 500 }
-    );
+    console.error('API Error:', error);
+
+    // Obsługa błędów Axios
+    if (axios.isAxiosError(error)) {
+      return errorResponse({
+        code: 'NETWORK_ERROR',
+        text: error.response?.data?.message || 'Błąd połączenia'
+      }, error.response?.status || 503);
+    }
+
+    // Ogólny błąd serwera
+    return errorResponse(errorMessages.server_error, 500);
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    }
+  });
 }
