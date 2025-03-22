@@ -1,128 +1,180 @@
 // app/api/qcPhotos/route.js
 import { NextResponse } from 'next/server';
 import axios from 'axios';
-import crypto from 'crypto';
 
-const KAKOBUY_ENDPOINT = 'https://open.kakobuy.com/open/pic/qcImage';
+const ALLOWED_ORIGINS = [
+  'https://hxgn.pl',
+  'https://www.hxgn.pl',
+  'http://localhost:3000'
+];
+
 const API_SECRET = process.env.API_SECRET;
-const KAKOBUY_TOKEN = process.env.KAKOBUY_TOKEN;
-const AES_KEY = Buffer.from(process.env.AES_KEY, 'hex');
-const AES_IV = Buffer.from(process.env.AES_IV, 'hex');
+const API_TIMEOUT = 10000;
+const FALLBACK_ERROR_MESSAGE = 'System error, please try again later';
 
-const securityHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'X-Content-Type-Options': 'nosniff'
+const securityHeaders = (origin) => ({
+  'Access-Control-Allow-Origin': origin,
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
+  'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload'
+});
+
+const validateApiResponse = (data) => {
+  if (!data || typeof data !== 'object') {
+    return { valid: false, error: 'Invalid API structure' };
+  }
+
+  if (data.status === 'error') {
+    return {
+      valid: false,
+      error: data.message || FALLBACK_ERROR_MESSAGE,
+      isApiError: true
+    };
+  }
+
+  if (!data.data || !Array.isArray(data.data)) {
+    return { valid: false, error: 'Invalid data format' };
+  }
+
+  return { valid: true };
 };
 
-export async function GET(request) {
-  const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
-  
+const processPhotos = (apiData) => {
   try {
-    // Weryfikacja API Key
-    const apiKey = request.headers.get('x-api-key');
-    if (!apiKey || apiKey !== API_SECRET) {
+    const groupedPhotos = apiData.data.reduce((acc, item) => {
+      try {
+        const imageUrl = item?.image_url?.trim();
+        if (!imageUrl?.startsWith('http')) return acc;
+
+        const qcDate = item?.qc_date?.split(' ')[0] || 'no-date';
+        const batch = item?.batch ? `Batch: ${item.batch} | ` : '';
+        const variant = `${batch}QC ${qcDate}`;
+
+        acc[qcDate] = acc[qcDate] || {
+          variant,
+          photos: [],
+          timestamp: new Date(qcDate).getTime() || Date.now()
+        };
+
+        acc[qcDate].photos.push(imageUrl);
+        return acc;
+      } catch (error) {
+        console.error('Item processing error:', error);
+        return acc;
+      }
+    }, {});
+
+    return Object.values(groupedPhotos)
+      .filter(group => group.photos?.length > 0)
+      .sort((a, b) => b.timestamp - a.timestamp);
+  } catch (error) {
+    console.error('Processing error:', error);
+    return [];
+  }
+};
+
+export async function OPTIONS(request) {
+  const origin = request.headers.get('origin');
+  const headers = ALLOWED_ORIGINS.includes(origin) 
+    ? securityHeaders(origin)
+    : {};
+
+  return new NextResponse(null, {
+    status: 204,
+    headers
+  });
+}
+
+export async function POST(request) {
+  const origin = request.headers.get('origin');
+  const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
+
+  if (!ALLOWED_ORIGINS.includes(origin)) {
+    console.warn(`Blocked request from invalid origin: ${origin} (IP: ${clientIP})`);
+    return NextResponse.json(
+      { status: 'error', code: 'origin_blocked', message: 'Access denied' },
+      { status: 403 }
+    );
+  }
+
+  const apiKey = request.headers.get('x-api-key');
+  if (apiKey !== API_SECRET) {
+    console.warn(`Invalid API key attempt from: ${origin} (IP: ${clientIP})`);
+    return NextResponse.json(
+      { status: 'error', code: 'invalid_key', message: 'Unauthorized' },
+      { status: 401, headers: securityHeaders(origin) }
+    );
+  }
+
+  try {
+    const { url } = await request.json();
+    if (!url) {
       return NextResponse.json(
-        { status: 'error', message: 'Invalid API key' },
-        { status: 401, headers: securityHeaders }
+        { status: 'error', code: 'missing_url', message: 'URL parameter required' },
+        { status: 400, headers: securityHeaders(origin) }
       );
     }
 
-    // Walidacja parametrów
-    const { searchParams } = new URL(request.url);
-    const goodsUrl = searchParams.get('goodsUrl');
-
-    if (!goodsUrl) {
-      return NextResponse.json(
-        { status: 'error', message: 'Goods URL is required' },
-        { status: 400, headers: securityHeaders }
-      );
-    }
-
-    // Wywołanie Kakobuy API
-    const response = await axios({
-      method: 'GET',
-      url: KAKOBUY_ENDPOINT,
-      params: {
-        token: KAKOBUY_TOKEN,
-        goodsUrl: goodsUrl
-      },
-      timeout: 10000
+    const response = await axios.get('https://open.kakobuy.com/open/pic/qcImage', {
+      params: { token: process.env.KAKOBUY_TOKEN, goodsUrl: url },
+      timeout: API_TIMEOUT,
+      validateStatus: (status) => status < 500
     });
 
-    // Obsługa błędów odpowiedzi
-    if (response.data.status === 'error') {
-      return handleKakobuyError(response.data.message);
+    const validation = validateApiResponse(response.data);
+    if (!validation.valid) {
+      console.error('API validation failed:', {
+        url,
+        status: response.status,
+        validationError: validation.error
+      });
+      
+      return NextResponse.json(
+        { status: 'error', code: 'invalid_response', message: validation.error },
+        { status: 400, headers: securityHeaders(origin) }
+      );
     }
 
-    // Deszyfrowanie URLi
-    const decryptedData = response.data.data.map(item => ({
-      ...item,
-      image_url: decryptImageUrl(item.image_url)
-    }));
+    const groupsData = processPhotos(response.data);
+    if (!groupsData.length) {
+      return NextResponse.json(
+        { status: 'error', code: 'no_data', message: 'No QC photos found' },
+        { status: 404, headers: securityHeaders(origin) }
+      );
+    }
+
+    return NextResponse.json({
+      status: 'success',
+      data: {
+        count: groupsData.length,
+        groups: groupsData
+      },
+      meta: {
+        source: 'kakobuy',
+        timestamp: new Date().toISOString()
+      }
+    }, {
+      headers: securityHeaders(origin)
+    });
+
+  } catch (error) {
+    console.error('API error:', {
+      error: error.message,
+      stack: error.stack
+    });
+
+    const statusCode = axios.isAxiosError(error) 
+      ? error.response?.status || 503 
+      : 500;
 
     return NextResponse.json(
-      { status: 'success', data: decryptedData },
-      { headers: securityHeaders }
+      { status: 'error', code: 'server_error', message: FALLBACK_ERROR_MESSAGE },
+      { status: statusCode, headers: securityHeaders(origin) }
     );
-
-  } catch (error) {
-    return handleApiError(error, clientIP);
   }
-}
-
-// Funkcje pomocnicze
-function decryptImageUrl(encryptedUrl) {
-  try {
-    const encryptedData = Buffer.from(encryptedUrl, 'base64');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', AES_KEY, AES_IV);
-    
-    let decrypted = decipher.update(encryptedData);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    
-    return decrypted.toString();
-  } catch (error) {
-    console.error('Decryption error:', error);
-    return null;
-  }
-}
-
-function handleKakobuyError(message) {
-  const errorMap = {
-    'Token is required': 401,
-    'Invalid token': 403,
-    'Daily query limit exceeded': 429,
-    'Goods URL is required': 400,
-    'Invalid goods URL': 400,
-    'Product not found': 404,
-    'No QC images found': 404
-  };
-
-  return NextResponse.json(
-    { status: 'error', message },
-    { status: errorMap[message] || 500, headers: securityHeaders }
-  );
-}
-
-function handleApiError(error, clientIP) {
-  let status = 500;
-  let message = 'Internal server error';
-
-  if (axios.isAxiosError(error)) {
-    status = error.response?.status || 503;
-    message = error.response?.data?.message || error.message;
-  } else if (error instanceof Error) {
-    message = error.message;
-  }
-
-  console.error(`[${clientIP}] Error: ${message}`);
-  return NextResponse.json(
-    { status: 'error', message },
-    { status, headers: securityHeaders }
-  );
-}
-
-export async function OPTIONS() {
-  return new Response(null, { headers: securityHeaders });
 }
