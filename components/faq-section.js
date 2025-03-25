@@ -48,7 +48,7 @@ export default function FaqSection() {
   ]
 
   return (
-    <section className="py-20 px-4 md:px-6 lg:px-8 container mx-auto">
+    <section className="py-20 px-4 md:px-6 lg:px-8 container mx-auto "> {/* Dodano bg-transparent */}
       <h2 className="text-3xl md:text-4xl font-semibold text-center mb-12 glow-text text-white">
         Najczęściej zadawane pytania (FAQ)
       </h2>

@@ -1,0 +1,23 @@
+{
+  "签收The shipment has been successfully delivereddelivered/Poland": "签收Przesyłka została pomyślnie dostarczona/Polska",
+  "The shipment has been successfully delivereddelivered": "Przesyłka została pomyślnie dostarczona",
+  "The shipment has been processed in the parcel centertransit": "Przesyłka została przetworzona w centrum przesyłek.",
+  "The shipment has been loaded onto the delivery vehiclepickup": "Przesyłka została załadowana na pojazd dostawczy.",
+  "The shipment has arrived in the destination country/destination area. (Homepage / online shipment tracking: https://www.dhl.com/de-de/home/tracking/tracking-parcel.html?submit=1&tracking-id=CG561133675DE)transit": "Przesyłka dotarła do kraju docelowego/obszaru docelowego. (Strona główna / śledzenie przesyłki online: https://www.dhl.com/de-de/home/tracking/tracking-parcel.html?submit=1&tracking-id=CG561133675DE) tranzyt",
+  "The international shipment has been processed in the export parcel centertransit": "Przesyłka międzynarodowa została przetworzona w centrum przesyłek eksportowych.",
+  "The international shipment has been processed in the parcel center of origintransit": "Przesyłka międzynarodowa została przetworzona w centrum obsługi paczek w miejscu pochodzenia.",
+  "清关中": "w procesie odprawy celnej",
+  "已交仓，等待扫描提取": "Dostarczony i oczekuje na odbiór skanowania",
+  "The goods leave the operation center": "Towary opuszczają centrum operacyjne",
+  "Arrived at the operating center": "Przybył do centrum operacyjnego",
+  "已落地，待清关": "Wylądował, oczekuje na odprawę celną",
+  "已交航司，头程3.9号航班飞": "Przekazałem go linii lotniczej. Pierwszy lot odbędzie się 3.9.",
+  "The instruction data for this shipment have been provided by the sender to DHL electronicallytransit": "Dane instrukcji dla tej przesyłki zostały dostarczone przez nadawcę do DHL electronicallytransit",
+  "清关完成，等待交仓": "Odprawa celna zakończona, oczekiwanie na dostawę",
+  "货物电子信息已经收到": "Otrzymano elektroniczne informacje o przesyłce",
+  "退件到达收货点/深圳": "Zwroty docierają do punktu odbioru/Shenzhen",
+  "收货/": "Odbiór/",
+  "转运中The instruction data for this shipment have been provided by the sender to DHL electronicallytransit/": "转运中Dane dotyczące instrukcji dla tej przesyłki zostały dostarczone przez nadawcę do DHL drogą elektroniczną.",
+  "过港中，航班待定": "Tranzyt w toku, lot do potwierdzenia",
+  "已交航司，预计3.24号航班飞": "Oczekuje się, że lot odbędzie się 3.24."
+}
