@@ -19,8 +19,64 @@
   }
 }
 
+
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.custom-font {
+  font-family: 'UrbanStarbluesDemo', sans-serif; /* Zastąp 'CustomFont1' nazwą wybranej czcionki */
+}
+
+.card {
+  @apply bg-gradient-to-b from-zinc-800/40 to-zinc-900/40 backdrop-blur-sm rounded-xl overflow-hidden border border-zinc-800/50 transition-all duration-300;
+}
+
+.card:hover {
+  @apply translate-y-[-8px] shadow-lg shadow-rose-500/10 border-zinc-700/50;
+}
+
+.faq-item {
+  @apply border-b border-zinc-800/50;
+}
+
+.faq-question {
+  @apply flex justify-between items-center w-full text-left text-lg font-medium py-5 text-white/90 hover:text-rose-400 transition-colors;
+}
+
+.faq-answer {
+  @apply text-white/70;
+}
+/* Animacja dla karuzeli produktów */
+@keyframes slideLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% / 2));
+  }
+}
+
+.carousel {
+  animation: slideLeft 60s linear infinite;
+}
+
+.carousel:hover {
+  animation-play-state: paused;
+}
+
+.glass-panel {
+  @apply bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl;
+  transition: all 0.3s ease;
+}
+
+.glass-panel:hover {
+  @apply border-gray-600/50 shadow-lg shadow-purple-500/10;
+}
+
+.neon-text {
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
 }

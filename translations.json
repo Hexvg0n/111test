@@ -19,5 +19,12 @@
   "收货/": "Odbiór/",
   "转运中The instruction data for this shipment have been provided by the sender to DHL electronicallytransit/": "转运中Dane dotyczące instrukcji dla tej przesyłki zostały dostarczone przez nadawcę do DHL drogą elektroniczną.",
   "过港中，航班待定": "Tranzyt w toku, lot do potwierdzenia",
-  "已交航司，预计3.24号航班飞": "Oczekuje się, że lot odbędzie się 3.24."
+  "已交航司，预计3.24号航班飞": "Oczekuje się, że lot odbędzie się 3.24.",
+  "转运中航司拉货，预计3.28号航班飞/": "转运中航司拉货，预计3.28号航班飞/",
+  "航司拉货，预计3.28号航班飞": "航司拉货，预计3.28号航班飞",
+  "已交航司，预计3.26号航班飞": "已交航司，预计3.26号航班飞",
+  "转运中已通关，清点货物中/": "Odprawa celna w tranzycie, inwentaryzacja w toku/",
+  "Order information has been transmitted to DPD.transit": "Informacje o zamówieniu zostały przesłane do DPD.transit",
+  "The flight for your package is being arranged": "Lot dla pakietu jest w trakcie organizacji",
+  "已通关，清点货物中": "Odprawa celna, inwentaryzacja w toku."
 }

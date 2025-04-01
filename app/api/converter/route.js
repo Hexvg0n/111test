@@ -160,16 +160,76 @@ function extractItemID(url, patterns) {
   for (const pattern of patterns) {
     const match = decodedUrl.match(pattern);
     if (match) {
-      const groups = match.slice(1).filter(Boolean);
-      if (groups.length > 0) return { itemID: groups[0] };
+      if (match.length > 2) { // Handle patterns with multiple capture groups
+        return { platformCode: match[1], itemID: match[2] };
+      }
+      return { itemID: match[1] };
     }
   }
   return null;
 }
 
+function decodeUrlIfNeeded(url, middleman) {
+  if (middleman.requiresDecoding) {
+    try {
+      // Ensure URL is a string and has a protocol
+      if (typeof url !== 'string' || !url.startsWith('http')) {
+        throw new Error('Invalid URL format');
+      }
+      const urlObj = new URL(url);
+      const urlParam = urlObj.searchParams.get('url');
+      return urlParam ? decodeURIComponent(urlParam) : url;
+    } catch (error) {
+      console.error('Invalid URL during decoding:', error.message);
+      return url; // Return original URL on error
+    }
+  }
+  return url;
+}
+
 function identifyPlatform(url) {
   for (const [name, platform] of Object.entries(platforms)) {
     if (platform.regex.test(url)) return name;
+  }
+  return null;
+}
+
+function convertMiddlemanToOriginal(url) {
+  for (const [middlemanName, middleman] of Object.entries(middlemen)) {
+    const aliases = [middlemanName, ...(middleman.aliases || [])];
+    if (aliases.some(alias => url.includes(alias))) {
+      const processedUrl = decodeUrlIfNeeded(url, middleman);
+      const extracted = extractItemID(processedUrl, middleman.itemIDPattern);
+      if (extracted) {
+        let platformName = null;
+        let itemID = "";
+
+        if (middlemanName === 'hoobuy') {
+          if (extracted.platformCode && extracted.itemID) {
+            platformName = codeToPlatformName[extracted.platformCode];
+            itemID = extracted.itemID;
+          }
+        } else if (middlemanName === 'cssbuy') {
+          const cssPlatformMatch = processedUrl.match(/item-(taobao|1688|micro|tmall)-(\d+)\.html$/);
+          if (cssPlatformMatch) {
+            platformName = { taobao: 'taobao', '1688': '1688', micro: 'weidian', tmall: 'tmall' }[cssPlatformMatch[1]];
+            itemID = cssPlatformMatch[2];
+          }
+        } else {
+          for (const [platformKey, platformValue] of Object.entries(middleman.platformMapping)) {
+            if (processedUrl.includes(platformValue)) {
+              platformName = platformKey;
+              break;
+            }
+          }
+          itemID = extracted.itemID;
+        }
+
+        if (platformName && platforms[platformName]) {
+          return platforms[platformName].urlPattern.replace("{{itemID}}", itemID);
+        }
+      }
+    }
   }
   return null;
 }
@@ -226,14 +286,22 @@ export async function POST(request) {
   try {
     const { url } = await request.json();
     if (!url) {
-      return NextResponse.json(
-        { error: 'Brak wymaganego parametru URL' },
-        { status: 400, headers }
-      );
+      return NextResponse.json({ error: 'Brak wymaganego parametru URL' }, { status: 400, headers });
     }
 
-    const convertedUrls = { original: url };
-    
+    let originalUrl = convertMiddlemanToOriginal(url);
+    if (!originalUrl) {
+      const platformName = identifyPlatform(url);
+      if (platformName) {
+        const extraction = extractItemID(url, platforms[platformName].itemIDPattern);
+        if (extraction?.itemID) {
+          originalUrl = platforms[platformName].urlPattern.replace("{{itemID}}", extraction.itemID);
+        }
+      }
+    }
+
+    const convertedUrls = { original: originalUrl || url };
+
     for (const middlemanKey of Object.keys(middlemen)) {
       const convertedUrl = convertUrlToMiddleman(url, middlemanKey);
       if (convertedUrl) {
@@ -242,13 +310,9 @@ export async function POST(request) {
     }
 
     return NextResponse.json(convertedUrls, { headers });
-
   } catch (error) {
     console.error('Błąd API:', error);
-    return NextResponse.json(
-      { error: 'Wewnętrzny błąd serwera' },
-      { status: 500, headers }
-    );
+    return NextResponse.json({ error: 'Wewnętrzny błąd serwera' }, { status: 500, headers });
   }
 }
 
