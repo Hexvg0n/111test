@@ -112,6 +112,3 @@ export async function OPTIONS() {
     }
   });
 }
-export async function OPTIONS() {
-  return new NextResponse(null, { headers: securityHeaders });
-}
