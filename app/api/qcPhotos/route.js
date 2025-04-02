@@ -33,52 +33,85 @@ const processPhotos = (apiData) => {
   }, {});
 };
 
+
 export async function POST(request) {
-  const origin = request.headers.get('origin') || '';
-  const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
-
-
-
-
-
   try {
+    // Authentication and validation
+   
+
     const body = await request.json();
     if (!body?.url) {
       return NextResponse.json(
         { error: 'Missing URL parameter' },
-        { status: 400, headers: securityHeaders }
+        { status: 400 }
       );
     }
 
+    // Proper URL encoding and API request configuration
+    const encodedUrl = encodeURIComponent(body.url);
     const response = await axios.get('https://open.kakobuy.com/open/pic/qcImage', {
-      params: { token: KAKOBUY_TOKEN, goodsUrl: body.url },
+      params: {
+        token: KAKOBUY_TOKEN,
+        goodsUrl: encodedUrl // Use encoded URL
+      },
+      headers: {
+        'Referer': 'https://www.kakobuy.com/',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'
+      },
       timeout: 15000
     });
 
-    const groupedData = Object.values(processPhotos(response.data))
-      .sort((a, b) => b.timestamp - a.timestamp);
-
-    if (!groupedData.length) {
+    // Process response data
+    if (!response.data?.data?.length) {
       return NextResponse.json(
         { error: 'No QC photos found' },
-        { status: 404, headers: securityHeaders }
+        { status: 404 }
       );
     }
 
-    return NextResponse.json(
-      { status: 'success', data: { groups: groupedData } },
-      { headers: securityHeaders }
-    );
+    const groups = processGroups(response.data.data);
+    return NextResponse.json({ status: 'success', data: { groups } });
 
   } catch (error) {
     console.error('API Error:', error);
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.message || 'Internal server error';
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500, headers: securityHeaders }
+      { error: message },
+      { status }
     );
   }
 }
 
+function processGroups(items) {
+  return items.reduce((groups, item) => {
+    const date = item.qc_date?.split(' ')[0] || 'no-date';
+    const existing = groups.find(g => g.variant.includes(date));
+    
+    if (item.image_url?.startsWith('https')) {
+      if (!existing) {
+        groups.push({
+          variant: `QC ${date}`,
+          photos: [item.image_url],
+          timestamp: new Date(date).getTime()
+        });
+      } else {
+        existing.photos.push(item.image_url);
+      }
+    }
+    return groups;
+  }, []).sort((a, b) => b.timestamp - a.timestamp);
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, X-API-Key'
+    }
+  });
+}
 export async function OPTIONS() {
   return new NextResponse(null, { headers: securityHeaders });
 }
