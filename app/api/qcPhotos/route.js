@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import axios from 'axios';
 
 const KAKOBUY_TOKEN = process.env.KAKOBUY_TOKEN;
-const API_SECRET = process.env.API_SECRET;
-
 
 const securityHeaders = {
   'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
@@ -14,7 +12,9 @@ const securityHeaders = {
 };
 
 const processPhotos = (apiData) => {
-  return apiData.data.reduce((acc, item) => {
+  if (!Array.isArray(apiData)) return [];
+  
+  return apiData.reduce((acc, item) => {
     const imageUrl = item?.image_url?.trim();
     if (!imageUrl?.startsWith('https')) return acc;
 
@@ -33,17 +33,22 @@ const processPhotos = (apiData) => {
   }, {});
 };
 
-
 export async function POST(request) {
   try {
-    // Authentication and validation
-   
-
     const body = await request.json();
+    
+    // Validate required parameters
     if (!body?.url) {
       return NextResponse.json(
-        { error: 'Missing URL parameter' },
-        { status: 400 }
+        { status: 'error', message: 'Goods URL is required' },
+        { status: 400, headers: securityHeaders }
+      );
+    }
+
+    if (!KAKOBUY_TOKEN) {
+      return NextResponse.json(
+        { status: 'error', message: 'Token is required' },
+        { status: 500, headers: securityHeaders }
       );
     }
 
@@ -52,55 +57,69 @@ export async function POST(request) {
     const response = await axios.get('https://open.kakobuy.com/open/pic/qcImage', {
       params: {
         token: KAKOBUY_TOKEN,
-        goodsUrl: encodedUrl // Use encoded URL
+        goodsUrl: encodedUrl
       },
       headers: {
-        'Referer': 'https://www.kakobuy.com/',
+        'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'
       },
       timeout: 15000
     });
 
-    // Process response data
-    if (!response.data?.data?.length) {
+    // Handle API response
+    if (response.data.status === 'error') {
       return NextResponse.json(
-        { error: 'No QC photos found' },
-        { status: 404 }
+        { status: 'error', message: response.data.message },
+        { status: 400, headers: securityHeaders }
       );
     }
 
-    const groups = processGroups(response.data.data);
-    return NextResponse.json({ status: 'success', data: { groups } });
+    // Process response data
+    if (!response.data?.data?.length) {
+      return NextResponse.json(
+        { status: 'error', message: 'No QC images found' },
+        { status: 404, headers: securityHeaders }
+      );
+    }
+
+    const processedPhotos = processPhotos(response.data.data);
+    const groups = Object.values(processedPhotos).sort((a, b) => b.timestamp - a.timestamp);
+
+    return NextResponse.json(
+      { 
+        status: 'success', 
+        data: { groups } 
+      },
+      { headers: securityHeaders }
+    );
 
   } catch (error) {
     console.error('API Error:', error);
+    
+    // Handle specific error cases
+    if (error.response?.status === 401) {
+      return NextResponse.json(
+        { status: 'error', message: 'Invalid token' },
+        { status: 401, headers: securityHeaders }
+      );
+    }
+    
+    if (error.response?.status === 429) {
+      return NextResponse.json(
+        { status: 'error', message: 'Daily query limit exceeded' },
+        { status: 429, headers: securityHeaders }
+      );
+    }
+
+    // Handle other errors
     const status = error.response?.status || 500;
     const message = error.response?.data?.message || 'Internal server error';
+    
     return NextResponse.json(
-      { error: message },
-      { status }
+      { status: 'error', message },
+      { status, headers: securityHeaders }
     );
   }
-}
-
-function processGroups(items) {
-  return items.reduce((groups, item) => {
-    const date = item.qc_date?.split(' ')[0] || 'no-date';
-    const existing = groups.find(g => g.variant.includes(date));
-    
-    if (item.image_url?.startsWith('https')) {
-      if (!existing) {
-        groups.push({
-          variant: `QC ${date}`,
-          photos: [item.image_url],
-          timestamp: new Date(date).getTime()
-        });
-      } else {
-        existing.photos.push(item.image_url);
-      }
-    }
-    return groups;
-  }, []).sort((a, b) => b.timestamp - a.timestamp);
 }
 
 export async function OPTIONS() {
@@ -108,7 +127,8 @@ export async function OPTIONS() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, X-API-Key'
+      'Access-Control-Allow-Headers': 'Content-Type',
+      ...securityHeaders
     }
   });
 }
