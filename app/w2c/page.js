@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, ShoppingBag, ImageIcon } from "lucide-react"
+import { Search, ShoppingBag, ImageIcon, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Navbar from "@/components/navbar"
+
 function ProductCard({ product }) {
   const [isHovered, setIsHovered] = useState(false)
 
@@ -79,6 +80,8 @@ export default function W2CPage() {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [sortOption, setSortOption] = useState("name")
+  const [sortDirection, setSortDirection] = useState("asc")
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,8 +123,28 @@ export default function W2CPage() {
       filtered = filtered.filter((product) => selectedCategories.includes(product.category))
     }
 
+    // Apply sorting
+    filtered = [...filtered].sort((a, b) => {
+      switch (sortOption) {
+        case "price":
+          const priceA = parseFloat(a.price)
+          const priceB = parseFloat(b.price)
+          return sortDirection === "asc" ? priceA - priceB : priceB - priceA
+        case "name":
+          return sortDirection === "asc" 
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name)
+        case "category":
+          return sortDirection === "asc"
+            ? a.category.localeCompare(b.category)
+            : b.category.localeCompare(a.category)
+        default:
+          return 0
+      }
+    })
+
     setFilteredProducts(filtered)
-  }, [searchQuery, selectedCategories, products])
+  }, [searchQuery, selectedCategories, products, sortOption, sortDirection])
 
   const toggleCategory = (category) => {
     setSelectedCategories((prev) =>
@@ -129,31 +152,35 @@ export default function W2CPage() {
     )
   }
 
+  const toggleSortDirection = () => {
+    setSortDirection(prev => prev === "asc" ? "desc" : "asc")
+  }
+
   return (
     <div className="relative bg-[#0A0A0A] min-h-screen text-white selection:bg-rose-500/30 selection:text-white">
-        <Navbar/>
+      <Navbar />
     
       {/* Background effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-{/* Top gradient - bardziej miękkie przejścia */}
-<div
-  className="absolute top-0 left-0 w-full h-[70vh] bg-gradient-to-br from-rose-500/10 from-10% via-purple-500/5 via-40% to-transparent to-90%"
-  style={{
-    transform: "translate3d(0, 0, 0)",
-    backfaceVisibility: "hidden",
-    filter: "blur(20px)",
-  }}
-/>
+        {/* Top gradient - bardziej miękkie przejścia */}
+        <div
+          className="absolute top-0 left-0 w-full h-[70vh] bg-gradient-to-br from-rose-500/10 from-10% via-purple-500/5 via-40% to-transparent to-90%"
+          style={{
+            transform: "translate3d(0, 0, 0)",
+            backfaceVisibility: "hidden",
+            filter: "blur(20px)",
+          }}
+        />
 
-{/* Bottom gradient - rozmyte krawędzie */}
-<div
-  className="absolute bottom-0 right-0 w-full h-[50vh] bg-gradient-to-tl from-purple-500/10 from-10% via-indigo-500/5 via-40% to-transparent to-90%"
-  style={{
-    transform: "translate3d(0, 0, 0)",
-    backfaceVisibility: "hidden",
-    filter: "blur(20px)",
-  }}
-/>
+        {/* Bottom gradient - rozmyte krawędzie */}
+        <div
+          className="absolute bottom-0 right-0 w-full h-[50vh] bg-gradient-to-tl from-purple-500/10 from-10% via-indigo-500/5 via-40% to-transparent to-90%"
+          style={{
+            transform: "translate3d(0, 0, 0)",
+            backfaceVisibility: "hidden",
+            filter: "blur(20px)",
+          }}
+        />
 
         {/* Animated particles */}
         <div className="absolute inset-0">
@@ -173,10 +200,9 @@ export default function W2CPage() {
           </span>
         </h1>
 
-        {/* Search Bar */}
-        <div className="relative max-w-2xl mx-auto mb-10">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-rose-400" />
+        {/* Search and Sort Bar */}
+        <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto mb-10">
+          <div className="relative flex-1">
             <input
               type="text"
               placeholder="Szukaj produktów..."
@@ -184,6 +210,26 @@ export default function W2CPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+          </div>
+          
+          <div className="flex gap-2">
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="bg-zinc-800/40 backdrop-blur-sm border border-zinc-700/50 focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/20 rounded-xl text-white px-4 py-3 appearance-none"
+            >
+              <option value="name">Nazwa</option>
+              <option value="price">Cena</option>
+              <option value="category">Kategoria</option>
+            </select>
+            
+            <button
+              onClick={toggleSortDirection}
+              className="bg-zinc-800/40 backdrop-blur-sm border border-zinc-700/50 hover:border-rose-500/50 rounded-xl text-white p-3 transition-all"
+              title={sortDirection === "asc" ? "Sortuj rosnąco" : "Sortuj malejąco"}
+            >
+              {sortDirection === "asc" ? <ArrowUp className="h-5 w-5" /> : <ArrowDown className="h-5 w-5" />}
+            </button>
           </div>
         </div>
 

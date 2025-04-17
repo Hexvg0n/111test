@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Menu, X, ShoppingCart, User, Search } from "lucide-react"
@@ -8,10 +9,18 @@ import "@/public/style/fonts.css"
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const isOpenRef = useRef(isOpen)
+
+  // Update ref when isOpen changes
+  useEffect(() => {
+    isOpenRef.current = isOpen
+  }, [isOpen])
 
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
+      // Prevent scrolled state update if mobile menu is open
+      if (isOpenRef.current) return
       if (window.scrollY > 20) {
         setScrolled(true)
       } else {
@@ -27,7 +36,8 @@ export default function Navbar() {
     <header
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled ? "bg-black/80 backdrop-blur-md border-b border-zinc-800/50 py-3" : "bg-transparent py-5",
+        /* Apply scrolled styles if scrolled OR mobile menu is open */
+        (scrolled || isOpen) ? "bg-black/80 backdrop-blur-md border-b border-zinc-800/50 py-3" : "bg-transparent py-5",
       )}
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
@@ -65,11 +75,11 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         <div
-          className={cn(
-            "fixed inset-0 bg-black/95 backdrop-blur-xl flex flex-col justify-center items-center transition-all duration-300 md:hidden",
-            isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
-          )}
-        >
+  className={cn(
+    "fixed inset-0 h-screen bg-black/95 flex flex-col justify-center items-center transition-all duration-300 md:hidden z-51",
+    isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+  )}
+>
           <nav className="flex flex-col items-center gap-6 text-xl">
             <MobileNavLink href="/w2c" onClick={() => setIsOpen(false)}>
               Produkty
