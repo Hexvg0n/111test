@@ -1,12 +1,58 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ExternalLink, Check, ShoppingBag, Package, CreditCard, Truck, Search, MapPin } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Navbar from "@/components/navbar"
+
 export default function HowToPage() {
   const [activeSection, setActiveSection] = useState(1)
+
+  // YouTube Player API integration
+  useEffect(() => {
+    // Load the YouTube API script
+    const tag = document.createElement("script")
+    tag.src = "https://www.youtube.com/iframe_api"
+    const firstScriptTag = document.getElementsByTagName("script")[0]
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+
+    // Initialize the player when API is ready
+    window.onYouTubeIframeAPIReady = () => {
+      new window.YT.Player("youtube-player", {
+        videoId: "dQw4w9WgXcQ", // Replace with your actual video ID
+        playerVars: {
+          autoplay: 0,
+          modestbranding: 1,
+          rel: 0,
+          showinfo: 0,
+          color: "white",
+          playsinline: 1,
+        },
+        events: {
+          onReady: (event) => {
+            // Player is ready
+            console.log("YouTube player is ready")
+          },
+          onStateChange: (event) => {
+            // Player state has changed
+          },
+        },
+      })
+    }
+
+    // Cleanup function
+    return () => {
+      // Remove the global callback
+      delete window.onYouTubeIframeAPIReady
+
+      // Remove any existing YouTube API script
+      const youtubeScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]')
+      if (youtubeScript) {
+        youtubeScript.remove()
+      }
+    }
+  }, [])
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(`section-${sectionId}`)
@@ -20,28 +66,28 @@ export default function HowToPage() {
 
   return (
     <div className="relative bg-[#0A0A0A] min-h-screen text-white selection:bg-rose-500/30 selection:text-white">
-    <Navbar/>
+      <Navbar />
       {/* Background effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-{/* Top gradient - bardziej miękkie przejścia */}
-<div
-  className="absolute top-0 left-0 w-full h-[70vh] bg-gradient-to-br from-rose-500/10 from-10% via-purple-500/5 via-40% to-transparent to-90%"
-  style={{
-    transform: "translate3d(0, 0, 0)",
-    backfaceVisibility: "hidden",
-    filter: "blur(20px)",
-  }}
-/>
+        {/* Top gradient - bardziej miękkie przejścia */}
+        <div
+          className="absolute top-0 left-0 w-full h-[70vh] bg-gradient-to-br from-rose-500/10 from-10% via-purple-500/5 via-40% to-transparent to-90%"
+          style={{
+            transform: "translate3d(0, 0, 0)",
+            backfaceVisibility: "hidden",
+            filter: "blur(20px)",
+          }}
+        />
 
-{/* Bottom gradient - rozmyte krawędzie */}
-<div
-  className="absolute bottom-0 right-0 w-full h-[50vh] bg-gradient-to-tl from-purple-500/10 from-10% via-indigo-500/5 via-40% to-transparent to-90%"
-  style={{
-    transform: "translate3d(0, 0, 0)",
-    backfaceVisibility: "hidden",
-    filter: "blur(20px)",
-  }}
-/>
+        {/* Bottom gradient - rozmyte krawędzie */}
+        <div
+          className="absolute bottom-0 right-0 w-full h-[50vh] bg-gradient-to-tl from-purple-500/10 from-10% via-indigo-500/5 via-40% to-transparent to-90%"
+          style={{
+            transform: "translate3d(0, 0, 0)",
+            backfaceVisibility: "hidden",
+            filter: "blur(20px)",
+          }}
+        />
 
         {/* Animated particles */}
         <div className="absolute inset-0">
@@ -60,6 +106,20 @@ export default function HowToPage() {
             Jak Zamawiać
           </span>
         </h1>
+
+        {/* YouTube Video Section */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="bg-gradient-to-b from-zinc-800/40 to-zinc-900/40 backdrop-blur-sm rounded-xl p-4 border border-zinc-800/50 shadow-xl shadow-rose-500/5 overflow-hidden">
+            <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-lg">
+              <div id="youtube-player" className="absolute top-0 left-0 w-full h-full"></div>
+            </div>
+            <div className="mt-4 text-center">
+              <p className="text-white/80">
+                Obejrzyj nasz szczegółowy poradnik wideo, który przeprowadzi Cię przez cały proces zamawiania.
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
           {/* Sidebar Navigation */}
@@ -475,4 +535,3 @@ export default function HowToPage() {
     </div>
   )
 }
-

@@ -9,12 +9,12 @@ import { motion, AnimatePresence } from "framer-motion"
 
 // Enhanced product data with image placeholders
 const products = [
-  { id: 1, name: "Dragon HEAT REACTIVE BALACLAVA temperature-changing headgear", price: "40 zł", image: "https://img.alicdn.com/bao/uploaded/i3/4084171057/O1CN0191dOvW1Jg9flXDUBu_!!4084171057.jpg", rating: 4.8, reviews: 791, link: "https://ikako.vip/zndry"},
-  { id: 2, name: "BLCG Track系列Follow me on IG to see new products in production", price: "220 zł", image: "https://si.geilicdn.com/open1733523732-1234478995-13a400000193748922cb0a239383_1179_1180.jpg", rating: 4.9, reviews: 2256, link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7311979753&affcode=dripez" },
-  { id: 3, name: "Air Force 1 (Many colorways)", price: "80 zł", image: "https://si.geilicdn.com/open1733523732-1234478995-61540000019374949d300a8115b5_1280_1296.jpg", rating: 4.7, reviews: 9289 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7312892706&affcode=dripez"},
-  { id: 4, name: "YZY Slide", price: "60 zł", image: "https://si.geilicdn.com/wdseller1553163813-4cc80000018fae9689da0a8133cc_1080_1080.jpg", rating: 4.6, reviews: 167 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D4480454092&affcode=dripez"},
-  { id: 5, name: "【定制 AIR MAG BACK TO THE FUTURE", price: "1200 zł", image: "https://si.geilicdn.com/open1733523732-1234478995-55cf000001937e7265d80a210298_1284_1712.jpg", rating: 4.9, reviews: 312 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7313684700&affcode=dripez"},
-  { id: 6, name: "SUDU Earbuds pro2 (USBC) 2023 Newest version with noise reduction", price: "280 zł", image: "https://si.geilicdn.com/wdseller238424219-5fc50000018d0c36df360a2313be_1442_1922.jpg", rating: 4.0, reviews: 98 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6953834871&affcode=dripez"},
+  { id: 1, name: "Dragon HEAT REACTIVE BALACLAVA temperature-changing headgear", price: "40 zł", image: "images/maska.png", rating: 4.8, reviews: 791, link: "https://ikako.vip/zndry"},
+  { id: 2, name: "BLCG Track系列Follow me on IG to see new products in production", price: "220 zł", image: "images/trackinew.png", rating: 4.9, reviews: 2256, link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7311979753&affcode=dripez" },
+  { id: 3, name: "Air Force 1 (Many colorways)", price: "80 zł", image: "images/forcy.png", rating: 4.7, reviews: 9289 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7312892706&affcode=dripez"},
+  { id: 4, name: "YZY Slide", price: "60 zł", image: "images/slidesystrona.png", rating: 4.6, reviews: 167 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D4480454092&affcode=dripez"},
+  { id: 5, name: "【定制 AIR MAG BACK TO THE FUTURE", price: "1200 zł", image: "images/airmagi.png", rating: 4.9, reviews: 312 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7313684700&affcode=dripez"},
+  { id: 6, name: "SUDU Earbuds pro2 (USBC) 2023 Newest version with noise reduction", price: "280 zł", image: "images/podsywebsite.png", rating: 4.0, reviews: 98 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6953834871&affcode=dripez"},
 ]
 
 // FAQ data
@@ -466,7 +466,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-rose-400">
-                REPIARSKIE
+                DRIPEZ
               </div>
               <p className="text-white/50 mt-2">Wszystko, czego potrzebujesz w jednym miejscu</p>
             </div>

@@ -27,7 +27,7 @@ const platforms = {
 const middlemen = {
   kakobuy: {
     name: "Kakobuy",
-    template: "https://www.kakobuy.com/item/details?url={{encodedUrl}}&affcode=frosireps",
+    template: "https://www.kakobuy.com/item/details?url={{encodedUrl}}&affcode=dripez",
     platformMapping: {
       taobao: "item.taobao.com",
       "1688": "detail.1688.com",
@@ -39,7 +39,7 @@ const middlemen = {
   },
   superbuy: {
     name: "Superbuy",
-    template: "https://www.superbuy.com/en/page/buy/?url={{encodedUrl}}&partnercode=EEr5wI",
+    template: "https://www.superbuy.com/en/page/buy/?url={{encodedUrl}}&partnercode=EiE9aB",
     platformMapping: {
       taobao: "item.taobao.com",
       "1688": "detail.1688.com",
@@ -51,7 +51,7 @@ const middlemen = {
   },
   cssbuy: {
     name: "CSSBuy",
-    template: "https://cssbuy.com/item{{cssPlatform}}{{itemID}}.html",
+    template: "https://cssbuy.com/item{{cssPlatform}}{{itemID}}.html?promotionCode=90622f541f98cd81",
     platformMapping: {
       taobao: "-taobao-",
       "1688": "-1688-",
@@ -68,7 +68,7 @@ const middlemen = {
   },
   allchinabuy: {
     name: "AllChinaBuy",
-    template: "https://www.allchinabuy.com/en/page/buy/?url={{encodedUrl}}&partnercode=wf5ZpA",
+    template: "https://www.allchinabuy.com/en/page/buy/?url={{encodedUrl}}&partnercode=wVK3gY",
     platformMapping: {
       taobao: "item.taobao.com",
       "1688": "detail.1688.com",
@@ -103,7 +103,7 @@ const middlemen = {
   },
   cnfans: {
     name: "CNFans",
-    template: "https://cnfans.com/product/?shop_type={{platformDomain}}&id={{itemID}}",
+    template: "https://cnfans.com/product/?shop_type={{platformDomain}}&id={{itemID}}&ref=191373",
     platformMapping: {
       taobao: "taobao",
       "1688": "ali_1688",
@@ -114,7 +114,7 @@ const middlemen = {
   },
   joyabuy: {
     name: "Joyabuy",
-    template: "https://joyabuy.com/product/?shop_type={{platformDomain}}&id={{itemID}}",
+    template: "https://joyabuy.com/product/?shop_type={{platformDomain}}&id={{itemID}}&ref=300312245",
     platformMapping: {
       taobao: "taobao",
       "1688": "ali_1688",
@@ -125,7 +125,7 @@ const middlemen = {
   },
   mulebuy: {
     name: "Mulebuy",
-    template: "https://mulebuy.com/product/?shop_type={{platformDomain}}&id={{itemID}}",
+    template: "https://mulebuy.com/product/?shop_type={{platformDomain}}&id={{itemID}}&ref=200345641",
     platformMapping: {
       taobao: "taobao",
       "1688": "ali_1688",
@@ -136,7 +136,7 @@ const middlemen = {
   },
   hoobuy: {
     name: "HooBuy",
-    template: "https://hoobuy.com/product/{{platformCode}}/{{itemID}}",
+    template: "https://hoobuy.com/product/{{platformCode}}/{{itemID}}?inviteCode=w8ow9ZB8",
     platformMapping: {
       '0': 'detail.1688.com',
       '1': 'item.taobao.com',
