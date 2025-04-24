@@ -60,7 +60,7 @@ export default function Navbar() {
           <NavLink href="/tracking">Śledzenie</NavLink>
           <NavLink href="/qc">Zdjęcia QC</NavLink>
           <NavLink href="/sellers">Sprzedawcy</NavLink>
-          <NavLink href="/discord">Discord</NavLink>
+          <NavLink href="https://discord.com/invite/Bx8ddZTD28">Discord</NavLink>
         </nav>
 
 
@@ -99,7 +99,7 @@ export default function Navbar() {
             <MobileNavLink href="/sellers" onClick={() => setIsOpen(false)}>
               Sprzedawcy
             </MobileNavLink>
-            <MobileNavLink href="/discord" onClick={() => setIsOpen(false)}>
+            <MobileNavLink href="https://discord.com/invite/Bx8ddZTD28" onClick={() => setIsOpen(false)}>
               Discord
             </MobileNavLink>
           </nav>
