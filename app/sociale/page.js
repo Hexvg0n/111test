@@ -119,7 +119,7 @@ export default function LinksPage() {
           {/* Profile Section */}
           <div className="flex flex-col items-center mb-12">
             <div className="relative w-28 h-28 rounded-full overflow-hidden mb-6 border-4 border-rose-500/30 shadow-lg shadow-rose-500/20">
-              <Image src="https://p16-sign-useast2a.tiktokcdn.com/tos-useast2a-avt-0068-euttp/161bfd7e2c0ccf91ec0213b0bd2fb963~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=10399&refresh_token=9c074b93&x-expires=1744804800&x-signature=NPh5NamGt5EGguGcnXdmS3reRfw%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=no1a" alt="Profile" fill className="object-cover" />
+              <Image src="/images/tiktok.jpeg" alt="Profile" fill className="object-cover" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-center mb-2 tracking-tight">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-rose-400 drop-shadow-[0_0_25px_rgba(244,63,94,0.2)]">
