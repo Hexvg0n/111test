@@ -9,12 +9,12 @@ import { motion, AnimatePresence } from "framer-motion"
 
 // Enhanced product data with image placeholders
 const products = [
-  { id: 1, name: "Dragon HEAT REACTIVE BALACLAVA temperature-changing headgear", price: "40 zł", image: "images/maska.png", rating: 4.8, reviews: 791, link: "https://ikako.vip/zndry"},
-  { id: 2, name: "BLCG Track系列Follow me on IG to see new products in production", price: "220 zł", image: "images/trackinew.png", rating: 4.9, reviews: 2256, link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7311979753&affcode=dripez" },
-  { id: 3, name: "Air Force 1 (Many colorways)", price: "80 zł", image: "images/forcy.png", rating: 4.7, reviews: 9289 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7312892706&affcode=dripez"},
+  { id: 1, name: "Termoaktywna maska Supreme", price: "40 zł", image: "images/maska.png", rating: 4.8, reviews: 791, link: "https://ikako.vip/zndry"},
+  { id: 2, name: "Balenciaga Track", price: "220 zł", image: "images/trackinew.png", rating: 4.9, reviews: 2256, link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7311979753&affcode=dripez" },
+  { id: 3, name: "Air Force 1 (Wiele kolorystyk)", price: "80 zł", image: "images/forcy.png", rating: 4.7, reviews: 9289 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7312892706&affcode=dripez"},
   { id: 4, name: "YZY Slide", price: "60 zł", image: "images/slidesystrona.png", rating: 4.6, reviews: 167 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D4480454092&affcode=dripez"},
   { id: 5, name: "【定制 AIR MAG BACK TO THE FUTURE", price: "1200 zł", image: "images/airmagi.png", rating: 4.9, reviews: 312 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7313684700&affcode=dripez"},
-  { id: 6, name: "SUDU Earbuds pro2 (USBC) 2023 Newest version with noise reduction", price: "280 zł", image: "images/podsywebsite.png", rating: 4.0, reviews: 98 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6953834871&affcode=dripez"},
+  { id: 6, name: "SUDU AirPods Pro 2 ", price: "280 zł", image: "images/podsywebsite.png", rating: 4.0, reviews: 98 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6953834871&affcode=dripez"},
 ]
 
 // FAQ data
@@ -54,7 +54,7 @@ function ProductCard({ product }) {
       transition={{ duration: 0.5 }}
     >
       <Link
-        href={`/products/${product.id}`}
+        href={`${product.link}`}
         className={cn(
           "group w-full bg-gradient-to-b from-zinc-800/40 to-zinc-900/40 backdrop-blur-sm rounded-xl overflow-hidden border border-zinc-800/50",
           "transition-all duration-300 ease-out",
