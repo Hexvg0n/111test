@@ -14,6 +14,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Dripez",
   description: "Dripez",
+  icons: {
+    icon: "/images/ico.ico", // Ścieżka do pliku w folderze public
+  },
 };
 
 export default function RootLayout({ children }) {
