@@ -157,25 +157,27 @@ export default function AdminPanel() {
 
   const renderForm = (type) => {
     const labels = {
-      products: {
-        title: "produkt",
-        fields: [
-          { name: "name", label: "Nazwa", type: "text" },
-          { name: "description", label: "Opis", type: "textarea" },
-          { 
-            name: "price", 
-            label: "Cena (zł)", 
-            type: "text", // Zmiana typu na text
-            pattern: "[0-9]*[.,]?[0-9]*" // Dopuszczalne formaty
-          },{
-          name: "category",
-        label: "Kategoria",
-        type: "select",
-        options: data.categories.map((cat) => cat.name)},
-          { name: "image", label: "Obraz URL", type: "url" },
-          { name: "buyLink", label: "Link do produktu", type: "url" },
-        ],
-      },
+products: {
+  title: "produkt",
+  fields: [
+    { name: "name", label: "Nazwa", type: "text" },
+    { name: "description", label: "Opis", type: "textarea" }, // Bez "required"
+    { 
+      name: "price", 
+      label: "Cena (zł)", 
+      type: "text",
+      pattern: "[0-9]*[.,]?[0-9]*"
+    },
+    {
+      name: "category",
+      label: "Kategoria",
+      type: "select",
+      options: data.categories.map((cat) => cat.name)
+    },
+    { name: "image", label: "Obraz URL", type: "url" },
+    { name: "buyLink", label: "Link do produktu", type: "url" },
+  ],
+},
       categories: {
         title: "kategorię",
         fields: [{ name: "name", label: "Nazwa kategorii", type: "text" }],
@@ -220,7 +222,7 @@ export default function AdminPanel() {
                 <label className="block text-sm font-medium mb-2 text-white/80">{field.label}</label>
                 {field.type === "textarea" ? (
                   <textarea
-                    required
+                    
                     className="w-full p-3 bg-zinc-800/50 border border-zinc-700/50 rounded-lg focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all text-white/90"
                     rows="4"
                     value={formData[type][field.name]}

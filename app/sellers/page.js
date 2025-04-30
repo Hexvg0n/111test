@@ -52,11 +52,11 @@ export default function SellersPage() {
           />
         ))}
         <span className="ml-2 text-white/70 text-sm">
-          {rating.toFixed(1)}/5
-        </span>
-      </div>
-    );
-  };
+        {rating % 1 === 0 ? rating.toFixed(0) : rating.toFixed(1)}/5
+      </span>
+    </div>
+  );
+};
 
   return (
     <div
