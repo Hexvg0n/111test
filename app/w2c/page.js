@@ -19,7 +19,7 @@ function ProductCard({ product }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative h-64 w-full overflow-hidden">
+      <div className="relative h-80 w-full overflow-hidden">
         {product.image ? (
           <div
             className={cn(
