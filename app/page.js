@@ -2,19 +2,67 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowRight, ChevronDown, ExternalLink, ShoppingBag, Sparkles, Star, TrendingUp } from "lucide-react"
+import { ArrowRight, ChevronDown, ExternalLink, ShoppingBag, Sparkles, Star } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Navbar from "@/components/navbar"
 import { motion, AnimatePresence } from "framer-motion"
 
 // Enhanced product data with image placeholders
 const products = [
-  { id: 1, name: "Termoaktywna maska Supreme", price: "40 zł", image: "images/maska.png", rating: 4.8, reviews: 791, link: "https://ikako.vip/zndry"},
-  { id: 2, name: "Balenciaga Track", price: "220 zł", image: "images/trackinew.png", rating: 4.9, reviews: 2256, link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7311979753&affcode=dripez" },
-  { id: 3, name: "Air Force 1 (Wiele kolorystyk)", price: "80 zł", image: "images/forcy.png", rating: 4.7, reviews: 9289 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7312892706&affcode=dripez"},
-  { id: 4, name: "YZY Slide", price: "60 zł", image: "images/slidesystrona.png", rating: 4.6, reviews: 167 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D4480454092&affcode=dripez"},
-  { id: 5, name: "【定制 AIR MAG BACK TO THE FUTURE", price: "1200 zł", image: "images/airmagi.png", rating: 4.9, reviews: 312 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7313684700&affcode=dripez"},
-  { id: 6, name: "SUDU AirPods Pro 2 ", price: "280 zł", image: "images/podsywebsite.png", rating: 4.0, reviews: 98 , link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6953834871&affcode=dripez"},
+  {
+    id: 1,
+    name: "Termoaktywna maska Supreme",
+    price: "40 zł",
+    image: "images/maska.png",
+    rating: 4.8,
+    reviews: 791,
+    link: "https://ikako.vip/zndry",
+  },
+  {
+    id: 2,
+    name: "Balenciaga Track",
+    price: "220 zł",
+    image: "images/trackinew.png",
+    rating: 4.9,
+    reviews: 2256,
+    link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7311979753&affcode=dripez",
+  },
+  {
+    id: 3,
+    name: "Air Force 1 (Wiele kolorystyk)",
+    price: "80 zł",
+    image: "images/forcy.png",
+    rating: 4.7,
+    reviews: 9289,
+    link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7312892706&affcode=dripez",
+  },
+  {
+    id: 4,
+    name: "YZY Slide",
+    price: "60 zł",
+    image: "images/slidesystrona.png",
+    rating: 4.6,
+    reviews: 167,
+    link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D4480454092&affcode=dripez",
+  },
+  {
+    id: 5,
+    name: "【定制 AIR MAG BACK TO THE FUTURE",
+    price: "1200 zł",
+    image: "images/airmagi.png",
+    rating: 4.9,
+    reviews: 312,
+    link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7313684700&affcode=dripez",
+  },
+  {
+    id: 6,
+    name: "SUDU AirPods Pro 2 ",
+    price: "280 zł",
+    image: "images/podsywebsite.png",
+    rating: 4.0,
+    reviews: 98,
+    link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6953834871&affcode=dripez",
+  },
 ]
 
 // FAQ data
@@ -116,10 +164,7 @@ function FaqItem({ faq, index }) {
         onClick={() => setIsOpen(!isOpen)}
       >
         {faq.question}
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.3 }}
-        >
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.3 }}>
           <ChevronDown className="h-5 w-5 text-rose-500" />
         </motion.div>
       </button>
@@ -165,7 +210,7 @@ export default function Home() {
           }}
           transition={{
             duration: 5,
-            repeat: Infinity,
+            repeat: Number.POSITIVE_INFINITY,
             ease: "easeInOut",
           }}
         />
@@ -183,7 +228,7 @@ export default function Home() {
           }}
           transition={{
             duration: 5,
-            repeat: Infinity,
+            repeat: Number.POSITIVE_INFINITY,
             ease: "easeInOut",
             delay: 2.5,
           }}
@@ -199,7 +244,7 @@ export default function Home() {
             }}
             transition={{
               duration: 8,
-              repeat: Infinity,
+              repeat: Number.POSITIVE_INFINITY,
               ease: "easeInOut",
             }}
           />
@@ -211,7 +256,7 @@ export default function Home() {
             }}
             transition={{
               duration: 10,
-              repeat: Infinity,
+              repeat: Number.POSITIVE_INFINITY,
               ease: "easeInOut",
               delay: 2,
             }}
@@ -224,7 +269,7 @@ export default function Home() {
             }}
             transition={{
               duration: 12,
-              repeat: Infinity,
+              repeat: Number.POSITIVE_INFINITY,
               ease: "easeInOut",
               delay: 4,
             }}
@@ -285,11 +330,11 @@ export default function Home() {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link
-              href="https://ikako.vip/r/dripez"
+              href="https://www.acbuy.com/login?loginStatus=register&code=dripez"
               className="group bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-600 px-6 py-3.5 rounded-xl text-white font-medium transition-all shadow-lg shadow-rose-500/25 hover:shadow-rose-500/40"
             >
               <span className="flex items-center justify-center">
-                Dostań 150$ za rejestrację na KakoBuy
+                Dostań 150$ za rejestrację na ACBuy
                 <ExternalLink className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </span>
             </Link>
@@ -313,8 +358,6 @@ export default function Home() {
         transition={{ duration: 0.5, delay: 1 }}
         className="py-24 px-4 md:px-6 lg:px-8 container mx-auto relative z-20"
       >
-        
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
           {[
             {
@@ -341,7 +384,7 @@ export default function Home() {
               title: "Rejestracja",
               icon: ExternalLink,
               desc: "Zarejestruj się i odbierz 150$",
-              link: "https://ikako.vip/r/dripez",
+              link: "https://www.acbuy.com/login?loginStatus=register&code=dripez",
               gradient: "from-purple-500/20 to-rose-500/20",
               borderColor: "border-purple-500/20",
             },
@@ -386,7 +429,9 @@ export default function Home() {
                   {React.createElement(item.icon, { className: "h-6 w-6 text-white" })}
                 </motion.div>
 
-                <h3 className="text-xl font-semibold mb-3 text-white group-hover:text-white/90 relative">{item.title}</h3>
+                <h3 className="text-xl font-semibold mb-3 text-white group-hover:text-white/90 relative">
+                  {item.title}
+                </h3>
                 <p className="text-white/60 group-hover:text-white/70 transition-colors relative">{item.desc}</p>
               </Link>
             </motion.div>
@@ -409,16 +454,14 @@ export default function Home() {
           transition={{ duration: 0.5, delay: 2 }}
           className="w-full overflow-hidden mb-16"
         >
-          <div className="relative">
-            <div className="flex gap-6 animate-[slideLeft_60s_linear_infinite] hover:pause">
-              {[...products, ...products, ...products].map((product, index) => (
+          <div className="relative carousel-container overflow-hidden">
+            <div className="flex gap-6 carousel-track">
+              {[...products, ...products].map((product, index) => (
                 <div key={`${product.id}-${index}`} className="w-96 flex-shrink-0">
                   <ProductCard product={product} />
                 </div>
               ))}
             </div>
-            <div className="absolute top-0 left-0 w-1/4 h-full bg-gradient-to-r from-[#0A0A0A] to-transparent pointer-events-none" />
-            <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-[#0A0A0A] to-transparent pointer-events-none" />
           </div>
         </motion.div>
       </motion.section>
@@ -477,7 +520,10 @@ export default function Home() {
               <Link href="/how-to" className="text-white/70 hover:text-rose-400 transition-colors">
                 Jak zamawiać
               </Link>
-              <Link href="https://discord.com/invite/Bx8ddZTD28" className="text-white/70 hover:text-rose-400 transition-colors">
+              <Link
+                href="https://discord.com/invite/Bx8ddZTD28"
+                className="text-white/70 hover:text-rose-400 transition-colors"
+              >
                 Discord
               </Link>
               <Link href="/sociale" className="text-white/70 hover:text-rose-400 transition-colors">
@@ -488,9 +534,14 @@ export default function Home() {
           <div className="mt-8 pt-8 border-t border-zinc-800/50 text-center text-white/50 text-sm">
             © {new Date().getFullYear()} REPIARSKIE. Wszelkie prawa zastrzeżone.
           </div>
+          <div className="mt-8 pt-8 border-t border-zinc-800/50 text-center text-white/50 text-sm">
+            Serwis dripez.pl pełni wyłącznie funkcję informacyjną i ostrzegawczą – nie wspieramy ani nie rekomendujemy zakupu nieoryginalnych produktów.
+Nie jesteśmy w żaden sposób powiązani z platformami zakupowymi takimi jak Weidian.com, Taobao.com, 1688.com, Tmall.com ani innymi serwisami handlowymi. Nasza strona nie stanowi oficjalnej oferty ani przedstawicielstwa tych platform.
+Wszystkie linki prowadzące do ofert zewnętrznych (w tym przyciski z cenami, odnośniki oznaczone gwiazdką oraz linki osadzone w obrazach) mają charakter afiliacyjny. Nie otrzymujemy prowizji od wartości poszczególnych produktów, a jedynie wynagrodzenie za pośrednictwo jako spedytor.
+dripez.pl nie jest sklepem internetowym i nie sprzedaje żadnych towarów własnych. Naszą misją jest ułatwienie wyszukiwania i porównywania ofert dostępnych na platformie kakobuy oraz innych serwisach, wyłącznie w celach informacyjnych.
+          </div>
         </div>
       </motion.footer>
     </div>
   )
 }
-

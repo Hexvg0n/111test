@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ExternalLink, Check, ShoppingBag, Package, CreditCard, Truck, Search, MapPin } from "lucide-react"
+import { ExternalLink, Check, ShoppingBag, Package, CreditCard, Truck, Search, MapPin, Camera, PackageCheck, Percent, ShieldCheck, Languages, Globe } from "lucide-react" // Added Camera, PackageCheck, Percent, ShieldCheck, Languages, Globe
 import { cn } from "@/lib/utils"
 import Navbar from "@/components/navbar"
 
@@ -13,9 +13,14 @@ export default function HowToPage() {
   useEffect(() => {
     // Load the YouTube API script
     const tag = document.createElement("script")
-    tag.src = "https://www.youtube.com/iframe_api"
+    tag.src = "https://www.youtube.com/iframe_api" // Corrected YouTube API URL
     const firstScriptTag = document.getElementsByTagName("script")[0]
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+    if (firstScriptTag && firstScriptTag.parentNode) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+    } else {
+        document.head.appendChild(tag);
+    }
+
 
     // Initialize the player when API is ready
     window.onYouTubeIframeAPIReady = () => {
@@ -51,6 +56,11 @@ export default function HowToPage() {
       if (youtubeScript) {
         youtubeScript.remove()
       }
+      // Remove the player iframe if it exists
+      const playerIframe = document.getElementById("youtube-player");
+      if (playerIframe && playerIframe.tagName === 'IFRAME') {
+          playerIframe.remove();
+      }
     }
   }, [])
 
@@ -63,6 +73,17 @@ export default function HowToPage() {
       setActiveSection(sectionId)
     }
   }
+
+  const sidebarItems = [
+    { id: 1, title: "Rejestracja Konta na ACBUY", icon: <Check className="h-4 w-4" /> },
+    { id: 2, title: "Znalezienie Produktu", icon: <Search className="h-4 w-4" /> },
+    { id: 3, title: "Dodanie do Koszyka i Pierwsza Płatność", icon: <ShoppingBag className="h-4 w-4" /> },
+    { id: 4, title: "Oczekiwanie na Dostawę do Magazynu i QC", icon: <Package className="h-4 w-4" /> },
+    { id: 5, title: "Sprawdzenie Zdjęć QC i Decyzja", icon: <Camera className="h-4 w-4" /> },
+    { id: 6, title: "Przygotowanie Paczki do Wysyłki", icon: <PackageCheck className="h-4 w-4" /> },
+    { id: 7, title: "Wybór Linii Wysyłkowej i Opłata", icon: <Truck className="h-4 w-4" /> },
+    { id: 8, title: "Śledzenie i Odbiór Przesyłki", icon: <MapPin className="h-4 w-4" /> },
+  ]
 
   return (
     <div className="relative bg-[#0A0A0A] min-h-screen text-white selection:bg-rose-500/30 selection:text-white">
@@ -103,7 +124,7 @@ export default function HowToPage() {
       <div className="container mx-auto pt-24 pb-16 px-4 md:px-6 relative z-20">
         <h1 className="text-3xl md:text-4xl font-bold text-center mb-8 tracking-tight">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-rose-400 drop-shadow-[0_0_25px_rgba(244,63,94,0.2)]">
-            Jak Zamawiać
+            Jak Zamawiać na ACBUY
           </span>
         </h1>
 
@@ -127,15 +148,7 @@ export default function HowToPage() {
             <div className="bg-gradient-to-b from-zinc-800/40 to-zinc-900/40 backdrop-blur-sm rounded-xl p-4 border border-zinc-800/50 sticky top-24">
               <h3 className="text-lg font-semibold mb-4 text-white">Spis treści</h3>
               <nav className="space-y-1">
-                {[
-                  { id: 1, title: "Rejestracja Konta", icon: <Check className="h-4 w-4" /> },
-                  { id: 2, title: "Znalezienie Produktu", icon: <Search className="h-4 w-4" /> },
-                  { id: 3, title: "Dodanie do Koszyka", icon: <ShoppingBag className="h-4 w-4" /> },
-                  { id: 4, title: "Oczekiwanie na Dostawę", icon: <Package className="h-4 w-4" /> },
-                  { id: 5, title: "Decyzja o Wysyłce", icon: <CreditCard className="h-4 w-4" /> },
-                  { id: 6, title: "Wybór Metody Wysyłki", icon: <Truck className="h-4 w-4" /> },
-                  { id: 7, title: "Śledzenie i Odbiór", icon: <MapPin className="h-4 w-4" /> },
-                ].map((item) => (
+                {sidebarItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => scrollToSection(item.id)}
@@ -154,7 +167,7 @@ export default function HowToPage() {
                     >
                       {item.icon}
                     </span>
-                    <span className="text-sm font-medium">{item.title}</span>
+                    <span className="text-sm font-medium">{item.title.split(" na ACBUY")[0].split(" (")[0]}</span>
                   </button>
                 ))}
               </nav>
@@ -171,29 +184,37 @@ export default function HowToPage() {
                     <Check className="h-5 w-5" />
                   </div>
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                    Krok 1: Rejestracja Konta na KakoBuy
+                    Krok 1: Rejestracja Konta na ACBUY
                   </h2>
                 </div>
                 <div className="space-y-4 text-white/80 ml-14">
-                  <p className="flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-zinc-800 text-white/70 text-xs">
+                  <p className="flex items-start gap-2">
+                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-zinc-800 text-white/70 text-xs shrink-0 mt-1">
                       1
                     </span>
-                    Wejdź na stronę rejestracji KakoBuy -
-                    <a
-                      href="https://ikako.vip/r/dripez"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-rose-400 hover:text-rose-300 inline-flex items-center gap-1 transition-colors"
-                    >
-                      https://ikako.vip/r/dripez <ExternalLink className="h-3 w-3" />
-                    </a>
+                    <span>
+                      Wejdź na stronę rejestracji ACBUY -
+                      <a
+                        href="https://www.acbuy.com/login?loginStatus=register&code=dripez"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-rose-400 hover:text-rose-300 inline-flex items-center gap-1 transition-colors ml-1"
+                      >
+                        Link do rejestracji <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </span>
                   </p>
-                  <p className="flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-zinc-800 text-white/70 text-xs">
+                  <p className="flex items-start gap-2">
+                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-zinc-800 text-white/70 text-xs shrink-0 mt-1">
                       2
                     </span>
-                    Podaj swój adres e-mail, ustaw hasło, zaakceptuj warunki i kliknij "Rejestruj".
+                    <span>Wybierz swój kraj, podaj adres e-mail, ustaw hasło, wpisz kod weryfikacyjny, zaakceptuj warunki i kliknij "Rejestruj".</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-zinc-800 text-white/70 text-xs shrink-0 mt-1">
+                      3
+                    </span>
+                    <span>Po zalogowaniu w prawym górnym rogu, możesz wybrać język (np. polski <Languages className="inline-block h-4 w-4 mx-1"/>) i walutę (np. USD lub PLN <Globe className="inline-block h-4 w-4 mx-1"/>).</span>
                   </p>
                 </div>
               </section>
@@ -205,24 +226,23 @@ export default function HowToPage() {
                     <Search className="h-5 w-5" />
                   </div>
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                    Krok 2: Znalezienie Produktu na KakoBuy
+                    Krok 2: Znalezienie Produktu
                   </h2>
                 </div>
                 <div className="space-y-4 text-white/80 ml-14">
                   <p>
                     Aby znaleźć interesujące Cię przedmioty, możesz skorzystać z linków do produktów. Na mojej stronie
                     znajdują się w zakładce{" "}
-                    <Link href="/w2c" className="text-rose-400 hover:text-rose-300 transition-colors">
-                      W2C
+                    <Link href="/produkty" className="text-rose-400 hover:text-rose-300 transition-colors">
+                      produkty
                     </Link>
                     . Możesz także przeglądać spreedsheety u innych twórców w poszukiwaniu linków do interesujących Cię
                     przedmiotów. (u mnie i tak macie najlepiej 😉😉😉)
                   </p>
                   <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700/50">
-                    <p className="font-medium text-white mb-2">Jeśli korzystasz z moich linków (W2C):</p>
+                    <p className="font-medium text-white mb-2">Jeśli korzystasz z moich linków (produkty):</p>
                     <p>
-                      Kliknij "Kup teraz" w prawym dolnym rogu – zostaniesz automatycznie przeniesiony na stronę
-                      produktu u twojego agenta.
+                      Kliknij "Kup teraz" w prawym dolnym rogu – zostaniesz automatycznie przeniesiony na stronę produktu.
                     </p>
                   </div>
                   <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700/50">
@@ -233,26 +253,26 @@ export default function HowToPage() {
                       <li>
                         Jeśli link prowadzi bezpośrednio do
                         <a
-                          href="https://ikako.vip/r/dripez"
+                          href="https://www.acbuy.com/login?loginStatus=register&code=dripez"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-rose-400 hover:text-rose-300 mx-1 inline-flex items-center gap-1 transition-colors"
                         >
-                          KakoBuy <ExternalLink className="h-3 w-3" />
+                          ACBUY <ExternalLink className="h-3 w-3" />
                         </a>
                         /
                         <a
-                          href="https://cnfans.com/register/?ref=191373"
+                          href="https://ikako.vip/r/dripez" // Example link, update if needed
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-rose-400 hover:text-rose-300 mx-1 inline-flex items-center gap-1 transition-colors"
                         >
-                          cnfans <ExternalLink className="h-3 w-3" />
+                          kakobuy <ExternalLink className="h-3 w-3" />
                         </a>
                         /etc. → po prostu go otwórz.
                       </li>
                       <li>
-                        Jeśli chciałbyś przenieść link z np. z cnfansa na kakobuy → wklej go w{" "}
+                        Jeśli chciałbyś przenieść link np. z kakobuy na ACBUY → wklej go w{" "}
                         <Link href="/converter" className="text-rose-400 hover:text-rose-300 transition-colors">
                           konwerter
                         </Link>
@@ -270,10 +290,11 @@ export default function HowToPage() {
                     <ShoppingBag className="h-5 w-5" />
                   </div>
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                    Krok 3: Dodanie do Koszyka i Złożenie Zamówienia
+                    Krok 3: Dodanie do Koszyka i Złożenie Zamówienia (Pierwsza Płatność)
                   </h2>
                 </div>
                 <div className="space-y-4 text-white/80 ml-14">
+                    <p className="font-semibold text-rose-300">To pierwszy etap płatności, obejmujący koszt TYLKO produktów (będziecie musieli jeszcze opłacić wysyłkę z Chin do Polski).</p>
                   <p>
                     Na stronie produktu wybierz rozmiar (jeśli jest dostępny). Czasami rozmiar wybierasz bezpośrednio z
                     listy, a czasami musisz zanotować swój rozmiar w uwagach do zamówienia. Jeśli nie jesteś pewien
@@ -282,7 +303,7 @@ export default function HowToPage() {
                     <Link href="/qc" className="text-rose-400 hover:text-rose-300 transition-colors">
                       Quality Checki (QC)
                     </Link>
-                    , gdzie możesz zobaczyć wymiary ubrań i ich rzeczywiste zdjęcia.
+                    , gdzie możecie zobaczyć wymiary ubrań i ich rzeczywiste zdjęcia.
                   </p>
                   <ol className="space-y-2 list-decimal list-inside">
                     <li>Kliknij "Dodaj do koszyka" lub "Kup teraz".</li>
@@ -293,9 +314,7 @@ export default function HowToPage() {
                       z warunkami.
                     </li>
                     <li>
-                      Wybierz metodę płatności. Dostępne opcje to między innymi karta, Google Pay, Apple Pay, a także
-                      PayU (BLIK), ja polecam kartę bo jest po prostu najbezpieczniejsza. Możesz także płacić z salda
-                      konta, jeśli je wcześniej doładujesz.
+                      Wybierz metodę płatności. ACBUY oferuje różne opcje: karta kredytowa/debetowa, Google Pay, Apple Pay, BLIK (przez PayU), PayU, kryptowaluty, Skrill. Możesz też zapłacić z salda konta ACBUY, jeśli je wcześniej doładowałeś. Ja polecam Wam BLIKa.
                     </li>
                     <li>
                       Potwierdź płatność. Pamiętaj, że ta pierwsza płatność jest tylko za produkty. Koszt wysyłki
@@ -312,46 +331,42 @@ export default function HowToPage() {
                     <Package className="h-5 w-5" />
                   </div>
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                    Krok 4: Oczekiwanie na Dostawę do Magazynu KakoBuy i Quality Check (QC)
+                    Krok 4: Oczekiwanie na Dostawę do Magazynu i QC
                   </h2>
                 </div>
                 <div className="space-y-4 text-white/80 ml-14">
+                  <p>Po opłaceniu zamówienia, statusy będą się zmieniać w zakładce "Zamówienia", informując Cię o etapie zakupu:</p>
                   <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700/50">
                     <p className="font-medium text-white mb-2">Statusy zamówienia:</p>
                     <ul className="space-y-2">
                       <li className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-400 text-xs border border-yellow-500/20">
+                          W trakcie weryfikacji
+                        </span>
+                        <span>Zamówienie oczekuje na sprawdzenie. Możesz je anulować na tym etapie.</span>
+                      </li>
+                      <li className="flex items-center gap-2">
                         <span className="inline-flex items-center justify-center px-2 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs border border-blue-500/20">
                           Zapłacone
                         </span>
-                        <span>Po zapłaceniu, status zamówienia zmieni się na "Zapłacone".</span>
+                        <span>Agent zakupił przedmiot od sprzedawcy.</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="inline-flex items-center justify-center px-2 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs border border-indigo-500/20">
-                          Zakupione
-                        </span>
-                        <span>Pracownicy KakoBuy zakupią przedmiot od sprzedawcy.</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center px-2 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs border border-purple-500/20">
-                          Wysłany w Chinach
+                          Wysłane przez sprzedawce
                         </span>
                         <span>
-                          Sprzedawca wyśle przedmiot do magazynu KakoBuy. Ten proces może trwać od 2 do 5 dni. Niektórzy
-                          sprzedawcy mogą wysyłać przedmioty dłużej.
+                          Sprzedawca wysłał przedmiot do magazynu ACBUY. Może to trwać 2-5 dni lub dłużej.
                         </span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center px-2 py-1 rounded-full bg-rose-500/10 text-rose-400 text-xs border border-rose-500/20">
-                          Zaopatrzony
+                        <span className="inline-flex items-center justify-center px-2 py-1 rounded-full bg-green-500/10 text-green-400 text-xs border border-green-500/20">
+                          Zmagazynowane
                         </span>
-                        <span>Po dotarciu przedmiotu do magazynu, status zmieni się na "Zaopatrzony".</span>
+                        <span>Przedmiot dotarł do magazynu ACBUY. W tym momencie agent rozpakowuje przedmiot i wykonuje zdjęcia QC (Quality Check).</span>
                       </li>
                     </ul>
                   </div>
-                  <p>
-                    Pracownicy KakoBuy wykonają zdjęcia QC (Quality Check) Twojego produktu. Będziesz mógł zobaczyć te
-                    zdjęcia w zakładce "Mój magazyn".
-                  </p>
                 </div>
               </section>
 
@@ -359,18 +374,33 @@ export default function HowToPage() {
               <section id="section-5" className="mb-12">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                    <CreditCard className="h-5 w-5" />
+                    <Camera className="h-5 w-5" />
                   </div>
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                    Krok 5: Podjęcie Decyzji o Wysyłce na KakoBuy
+                    Krok 5: Sprawdzenie Zdjęć QC i Podjęcie Decyzji
                   </h2>
                 </div>
                 <div className="space-y-4 text-white/80 ml-14">
+                  <p>
+                    Gdy przedmioty dotrą do magazynu i zostaną przetworzone, otrzymasz zdjęcia QC.
+                  </p>
                   <ol className="space-y-2 list-decimal list-inside">
-                    <li>Sprawdź zdjęcia QC. Upewnij się, że przedmiot wygląda zgodnie z Twoimi oczekiwaniami.</li>
-                    <li>Jeśli akceptujesz przedmiot, możesz przejść do jego wysyłki.</li>
                     <li>
-                      Jeśli nie jesteś zadowolony ze zdjęć QC, możesz zdecydować się na zwrot towaru. opcja "Powrót"
+                        Przejdź do zakładki{" "}
+                        <a
+                            href="https://www.acbuy.com/member/storage"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-rose-400 hover:text-rose-300 inline-flex items-center gap-1 transition-colors"
+                        >
+                            "Mój magazyn" <ExternalLink className="h-3 w-3" />
+                        </a>
+                        , aby zobaczyć realne zdjęcia QC swojego przedmiotu.
+                    </li>
+                    <li>Dokładnie sprawdź zdjęcia QC. Upewnij się, że przedmiot wygląda tak, jak oczekiwałeś, i nie ma wad.</li>
+                    <li>Jeśli jesteś zadowolony z jakości, możesz przejść do wysyłki.</li>
+                    <li>
+                      Jeśli zauważysz wady lub coś Ci się nie podoba, możesz zdecydować się na zwrot towaru opcją “Powrót”.
                     </li>
                   </ol>
                 </div>
@@ -380,93 +410,101 @@ export default function HowToPage() {
               <section id="section-6" className="mb-12">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                    <Truck className="h-5 w-5" />
+                    <PackageCheck className="h-5 w-5" />
                   </div>
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                    Krok 6: Wybór Metody Wysyłki i Opłacenie Przesyłki na KakoBuy
+                    Krok 6: Przygotowanie Paczki do Wysyłki
                   </h2>
                 </div>
                 <div className="space-y-4 text-white/80 ml-14">
+                    <p>Gdy przedmioty są w magazynie i mają status "zmagazynowane", możesz przygotować je do wysyłki do siebie:</p>
                   <ol className="space-y-2 list-decimal list-inside">
                     <li>
-                      Gdy przedmioty są w magazynie i mają status "paczkę można składać", przejdź do "Mój magazyn" i
-                      zaznacz przedmioty, które chcesz wysłać.
+                      W zakładce{" "}
+                        <a
+                            href="https://www.acbuy.com/member/storage"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-rose-400 hover:text-rose-300 inline-flex items-center gap-1 transition-colors"
+                        >
+                            "Mój magazyn" <ExternalLink className="h-3 w-3" />
+                        </a>
+                        zaznacz przedmioty, które chcesz wysłać w jednej paczce.
                     </li>
-                    <li>Kliknij "Wyślij list przewozowy".</li>
+                    <li>Kliknij "Złóż do wysyłki".</li>
                     <li>
-                      Dodaj swój adres dostawy
-                      <a
-                        href="https://www.kakobuy.com/center/account?page=shippingAddress"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-rose-400 hover:text-rose-300 mx-1 inline-flex items-center gap-1 transition-colors"
-                      >
-                        LINK <ExternalLink className="h-3 w-3" />
-                      </a>
-                      lub wybierz go, jeśli już go dodałeś. Aby dodać adres, kliknij w swój profil → User Center →
-                      Account → Shipping address → Add the shipping address.
+                      Dodaj swój adres dostawy lub wybierz istniejący. Podaj dokładne dane, aby uniknąć problemów z dostawą.
                     </li>
                     <li>
-                      Możesz wybrać dodatkowe usługi pakowania takie jak Usuń opakowanie (np. pudełko butów), szczegóły
-                      opakowania (np. ochrona na rogi). Zaleca się zaznaczenie Stretch Film, Moisture Bag oraz Corner
-                      Protection. Następnie kliknij "prześlij teraz" i opłać wstępne ważenie. Po wstępnym ważeniu (około
-                      12zł) paczka pojawi się w zakładce Rehearsal.
-                    </li>
-                    <li>Po zważeniu paczki i uzyskaniu zdjęć poglądowych, kliknij "Submit parcel".</li>
-                    <li>
-                      Wybierz linię lotniczą. Zgodnie z dostępnymi informacjami, najlepsze linie dostawy do Polski to
-                      DPD (szybko do Warszawy i większych miast, zazwyczaj około 13 dni), DHL (szybko, porównywalne do
-                      DPD, może być lepsze dla mniejszych miast), wybierz najtańszą, ponieważ nie powinno być różnicy w
-                      szybkości dostawy.
-                    </li>
-                    <li className="font-semibold text-rose-300">
-                      Zaznacz opcję "Buy Insurance" (kup ubezpieczenie) BARDZO WAŻNE.
-                    </li>
-                    <li>
-                      Jeśli zarejestrowałeś się przez mój link, w zakładce "Centrum Osobiste"
-                      <a
-                        href="https://www.kakobuy.com/center/home"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-rose-400 hover:text-rose-300 mx-1 inline-flex items-center gap-1 transition-colors"
-                      >
-                        LINK <ExternalLink className="h-3 w-3" />
-                      </a>
-                      wpisz kod "dripez", aby odblokować ekskluzywny rabat -60 zł na pierwsze zamówienie. Kod możesz
-                      wybrać podczas finalizacji zamówienia, ale pamiętaj że jest jednorazowy i dostępny tylko dla
-                      nowych użytkowników z mojego linku.
-                    </li>
-                    <li>Kliknij "Select" wybraną metodę wysyłki.</li>
-                    <li>
-                      Kliknij "Wyślij pakiet" i opłać koszt wysyłki. Możesz to zrobić za pomocą dostępnych metod
-                      płatności, np. BLIK.
+                      Wybierz opcje <span className="font-semibold text-white">Carton packaging</span> - polecam Wam wybrać opcje <span className="font-semibold text-white">Parcel reinforcement</span> (wzmocnienie paczki/rogów) i to jest najlepsze co możecie wziąć.
                     </li>
                   </ol>
                 </div>
               </section>
 
               {/* Section 7 */}
-              <section id="section-7" className="mb-12">
+                <section id="section-7" className="mb-12">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                            <Truck className="h-5 w-5" />
+                        </div>
+                        <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
+                            Krok 7: Wybór Linii Wysyłkowej i Opłacenie Przesyłki
+                        </h2>
+                    </div>
+                    <div className="space-y-4 text-white/80 ml-14">
+                        <ol className="space-y-3 list-decimal list-inside">
+                            <li>
+                                Jak będziesz wybierać linię wysyłkową, to najlepiej weź po prostu najtańszą opcję spośród <span className="font-semibold text-green-400">DHL, DPD</span> albo <span className="font-semibold text-green-400">InPost</span> – każda z nich działa spoko i bez problemu dociera do Polski.
+                            </li>
+                            <li>
+                                Omijaj <span className="font-semibold text-red-400">EMS, UPS</span> i <span className="font-semibold text-red-400">YunExpress</span>.
+                            </li>
+                            <li>
+                                Następnie mamy deklaracje - ACBUY oferuje automatyczną deklarację, więc po prostu zaznacz <span className="font-semibold text-white">deklaracja systemowa</span> i nic nie zmieniaj.
+                            </li>
+                            <li className="font-semibold text-rose-300 flex items-center gap-2">
+                                <ShieldCheck className="h-5 w-5 inline-block text-rose-300" />
+                                Pamiętaj o tym aby kupić ubezpieczenie (AC CARE). Jest to bardzo ważne. W przypadku zatrzymania przez celników, zagubienia lub uszkodzenia paczki, piszesz do nich i w takiej sytuacji otrzymujesz zwrot kasy.
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <Percent className="h-5 w-5 inline-block text-rose-300" />
+                                Następnie wpisujecie kod rabatowy - w tym przypadku jest to <span className="font-semibold text-white">dripez</span>. W kupon zaznaczcie ten na <span className="font-semibold text-white">-60zł</span> lub <span className="font-semibold text-white">15%</span> (to już jak Wam się opłaca).
+                            </li>
+                            <li>
+                                Następnie klikacie "Wyślij paczkę" - potwierdzacie adres.
+                            </li>
+                             <li>
+                                Opłać koszt wysyłki wybraną metodą płatności. Dostępne są te same opcje co przy pierwszej płatności (BLIK, karta, PayU, saldo itp.).
+                            </li>
+                        </ol>
+                    </div>
+                </section>
+
+              {/* Section 8 */}
+              <section id="section-8" className="mb-12">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
                     <MapPin className="h-5 w-5" />
                   </div>
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                    Krok 7: Śledzenie Przesyłki i Odbiór na KakoBuy
+                    Krok 8: Śledzenie i Odbiór Przesyłki
                   </h2>
                 </div>
                 <div className="space-y-4 text-white/80 ml-14">
                   <ol className="space-y-2 list-decimal list-inside">
                     <li>
-                      Po wysłaniu paczki, numer śledzenia pojawi się w zakładce "Numer paczki". Status Twojej paczki
-                      możesz śledzić bezpośrednio na KakoBuy lub u mnie w zakładce{" "}
+                      Po opłaceniu wysyłki, agent pakuje i wyśle paczkę. Numer śledzenia pojawi się w zakładce "Paczka".
+                    </li>
+                    <li>
+                      Możesz śledzić status swojej paczki bezpośrednio na ACBUY lub u mnie w zakładce{" "}
                       <Link href="/tracking" className="text-rose-400 hover:text-rose-300 transition-colors">
                         tracking
                       </Link>
                       .
                     </li>
-                    <li>Czas dostawy zależy od wybranej linii lotniczej.</li>
-                    <li>Po otrzymaniu paczki, możesz potwierdzić jej odbiór w systemie KakoBuy.</li>
+                    <li>Czas dostawy zależy od wybranej linii wysyłkowej i może wynosić od około dwóch do trzech tygodni, a nawet szybciej.</li>
+                    <li>Po otrzymaniu paczki, możesz potwierdzić jej odbiór w systemie ACBUY.</li>
                   </ol>
                 </div>
               </section>
@@ -475,13 +513,13 @@ export default function HowToPage() {
               <div className="mt-16 bg-gradient-to-r from-rose-500/10 to-purple-500/10 rounded-xl p-6 border border-rose-500/20">
                 <h3 className="text-xl font-semibold mb-4 text-white">Podsumowanie</h3>
                 <p className="text-white/80">
-                  Proces zamawiania może wydawać się skomplikowany na początku, ale z czasem staje się bardzo prosty.
+                  Proces zamawiania na ACBUY może wydawać się skomplikowany na początku, ale z czasem staje się bardzo prosty.
                   Pamiętaj, że zawsze możesz wrócić do tego poradnika, jeśli będziesz mieć jakiekolwiek wątpliwości.
                   Jeśli masz dodatkowe pytania, możesz skontaktować się ze mną przez Discord lub sprawdzić sekcję FAQ.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-4">
                   <Link
-                    href="/w2c"
+                    href="/produkty" // Updated from /w2c
                     className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-600 rounded-lg text-white font-medium transition-all shadow-lg shadow-rose-500/20 hover:shadow-rose-500/30"
                   >
                     <ShoppingBag className="h-4 w-4" />

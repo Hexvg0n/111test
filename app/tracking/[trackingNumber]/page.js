@@ -191,7 +191,6 @@ export default function TrackingDetails() {
                     <h1 className="text-2xl sm:text-3xl font-bold text-white">
                       {data["Informacje główne"]?.["Numer śledzenia"] || "Nieznany numer"}
                     </h1>
-                    <p className="text-white/70 text-lg">{data?.Źródło}</p>
                   </div>
                 </div>
                 <TrackingStatus status={data["Informacje główne"]?.["Ostatni status"]?.toLowerCase() || "pending"} />

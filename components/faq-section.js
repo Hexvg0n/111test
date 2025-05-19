@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
+import Link from "next/link" // Upewnij się, że Link jest zaimportowany
 import { ChevronDown } from "lucide-react"
 
 const FAQItem = ({ question, answer }) => {
@@ -30,7 +30,7 @@ export default function FaqSection() {
       answer: (
         <>
           Wszystkie porady dotyczące składania zamówień znajdziesz w zakładce{" "}
-          <Link href="/how-to" className="text-white underline hover:text-white/90">
+          <Link href="/how-to" className="text-white underline hover:text-white/90 text-red-400">
             How To
           </Link>
           . Tam znajdziesz szczegółowy przewodnik krok po kroku, który pomoże Ci bez problemu zrealizować zamówienie.
@@ -38,12 +38,12 @@ export default function FaqSection() {
       ),
     },
     {
-      question: "Po co mi ta strona?",
-      answer: "Ułatwia życie :)",
+      question: "Czy ACBuy jest bezpieczny?",
+      answer: "ACBuy jest bezpieczną platformą, oferującą zaufane metody płatności, takie jak blik,karta itp Jeśli sprzedawca wyśle Ci produkt niezgodny z zamówieniem, otrzymasz zwrot środków!",
     },
     {
-      question: "Czy mogę kupić repy bez agenta?",
-      answer: "W celu zrobienia proxy musicie utworzyć ticketa na discordzie.",
+      question: "Czy celnik mi zabierze paczke?",
+      answer: "Wysyłaj bezpiecznie paczki od 2 do 15 kg. Jeśli zdarzy się, że celnik zatrzyma Twoją przesyłkę, na acbuy masz darmowe ubezpieczenie (w zaleznosci od lini), dzięki któremu otrzymasz zwrot środków w przypadku gdy twoja paczka zostanie zatrzymana/zgubiona",
     },
   ]
 

@@ -1,15 +1,14 @@
-// /app/admin/page.js
 "use client"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Trash2, Edit, Plus, ArrowLeft, Package, Tags, Clock, Users, X } from "lucide-react"
+import { Trash2, Edit, Plus, ArrowLeft, Package, Tags, Clock, Users, X, Copy, Pin, PinOff } from "lucide-react" // Dodano Copy, Pin, PinOff
 import { cn } from "@/lib/utils"
 
 const defaultFormData = {
   products: {
     name: "",
     description: "",
-    price: "",  // Zmiana na pusty string
+    price: "",
     category: "",
     image: "",
     buyLink: "",
@@ -21,8 +20,9 @@ const defaultFormData = {
     rating: 5,
     description: "",
     image: "",
+    isPinned: false, // Dodano pole isPinned
   },
-};;
+};
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState("products")
@@ -67,10 +67,9 @@ export default function AdminPanel() {
     try {
       const response = await fetch(`/api/${type}/${id}`, { method: "DELETE" });
       if (!response.ok) throw new Error("Błąd usuwania");
-  
-      // Find the deleted item to get its name (before it's removed from state)
+
       const deletedItem = data[type].find(item => item._id === id);
-  
+
       setData((prev) => ({
         ...prev,
         [type]: prev[type].filter((item) => item._id !== id),
@@ -78,7 +77,7 @@ export default function AdminPanel() {
           {
             type,
             action: "delete",
-            name: `Usunięto ${deletedItem?.name || type.slice(0, -1)}`, // Use the item's name or fallback to type
+            name: `Usunięto ${deletedItem?.name || type.slice(0, -1)}`,
             date: new Date().toISOString(),
           },
           ...prev.history,
@@ -89,67 +88,147 @@ export default function AdminPanel() {
     }
   };
 
+  const handleDuplicate = async (type, id) => {
+    if (type !== "products") {
+      alert("Duplikowanie jest obecnie dostępne tylko dla produktów.");
+      return;
+    }
+    const itemToDuplicate = data[type].find((item) => item._id === id);
+    if (!itemToDuplicate) return;
+
+    if (!confirm(`Zduplikować ${type.slice(0, -1)} "${itemToDuplicate.name}"?`)) return;
+
+    // eslint-disable-next-line no-unused-vars
+    const { _id, ...itemDataWithoutId } = itemToDuplicate;
+    const duplicatedItemData = {
+      ...itemDataWithoutId,
+      name: `${itemToDuplicate.name} (Kopia)`,
+    };
+
+    try {
+      const response = await fetch(`/api/${type}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(duplicatedItemData),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Błąd duplikowania");
+
+      setData((prev) => ({
+        ...prev,
+        [type]: [...prev[type], result.data],
+        history: [
+          {
+            type,
+            action: "duplicate",
+            name: `Zduplikowano ${result.data.name}`,
+            date: new Date().toISOString(),
+          },
+          ...prev.history,
+        ],
+      }));
+      setError("");
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const handleTogglePin = async (sellerId, currentIsPinned) => {
+    const seller = data.sellers.find(s => s._id === sellerId);
+    if (!seller) return;
+
+    const newPinnedStatus = !currentIsPinned;
+
+    try {
+      const response = await fetch(`/api/sellers/${sellerId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPinned: newPinnedStatus }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Błąd zmiany statusu przypięcia");
+
+      setData((prev) => ({
+        ...prev,
+        sellers: prev.sellers.map((s) =>
+          s._id === sellerId ? { ...s, isPinned: newPinnedStatus } : s
+        ).sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || a.name.localeCompare(b.name)), // Keep sorted
+        history: [
+          {
+            type: "sellers",
+            action: newPinnedStatus ? "pinned" : "unpinned",
+            name: `${newPinnedStatus ? "Przypięto" : "Odpięto"} sprzedawcę ${seller.name}`,
+            date: new Date().toISOString(),
+          },
+          ...prev.history,
+        ],
+      }));
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+
   const handleSubmit = async (e, type) => {
     e.preventDefault()
     const isEdit = !!editingItem
     const endpoint = isEdit ? `/${editingItem._id}` : ""
-  
-    // Dodajemy bezpieczną konwersję ceny
+
+    let currentFormData = { ...formData[type] };
+
     if (type === "products") {
       let priceValue;
-      
-      // Konwersja dla różnych formatów
-      if (typeof formData.products.price === 'string') {
+      if (typeof currentFormData.price === 'string') {
         priceValue = parseFloat(
-          formData.products.price
-            .replace(',', '.')  // Zamiana przecinka na kropkę
-            .replace(/[^0-9.]/g, '') // Usuwanie nieprawidłowych znaków
+          currentFormData.price
+            .replace(',', '.')
+            .replace(/[^0-9.]/g, '')
         )
       } else {
-        priceValue = formData.products.price
+        priceValue = currentFormData.price
       }
-  
+
       if (isNaN(priceValue)) {
         setError("Proszę podać prawidłową cenę")
         return
       }
-      
-      // Aktualizacja formData z poprawną wartością liczbową
-      const updatedFormData = {
-        ...formData,
-        products: {
-          ...formData.products,
-          price: priceValue
-        }
-      }
-      setFormData(updatedFormData)
+      currentFormData.price = priceValue;
     }
-  
+
     try {
       const response = await fetch(`/api/${type}${endpoint}`, {
         method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData[type]),
+        body: JSON.stringify(currentFormData),
       })
       const result = await response.json()
       if (!response.ok) throw new Error(result.error)
-        setData((prev) => ({
-          ...prev,
-          history: [
-            {
-              type,
-              action: "create",
-              name: `Dodano ${result.data.name}`, // <--- Użyj nazwy nowego obiektu
-              date: new Date().toISOString(),
-            },
-            ...prev.history,
-          ],
-          [type]: isEdit
-            ? prev[type].map((item) => (item._id === result.data._id ? result.data : item))
-            : [...prev[type], result.data],
-        }));
+      
+      setData((prev) => {
+        const updatedItems = isEdit
+          ? prev[type].map((item) => (item._id === result.data._id ? result.data : item))
+          : [...prev[type], result.data];
+
+        if (type === "sellers") {
+          updatedItems.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || a.name.localeCompare(b.name));
+        }
+
+        return {
+        ...prev,
+        history: [
+          {
+            type,
+            action: isEdit ? "update" : "create", // Changed 'create' to 'update' for edit
+            name: `${isEdit ? "Zaktualizowano" : "Dodano"} ${result.data.name}`,
+            date: new Date().toISOString(),
+          },
+          ...prev.history,
+        ],
+        [type]: updatedItems,
+      }});
       setShowForm({ ...showForm, [type]: false })
       setEditingItem(null)
+      setFormData(defaultFormData) // Reset form
     } catch (error) {
       setError(error.message)
     }
@@ -157,46 +236,30 @@ export default function AdminPanel() {
 
   const renderForm = (type) => {
     const labels = {
-products: {
-  title: "produkt",
-  fields: [
-    { name: "name", label: "Nazwa", type: "text" },
-    { name: "description", label: "Opis", type: "textarea" }, // Bez "required"
-    { 
-      name: "price", 
-      label: "Cena (zł)", 
-      type: "text",
-      pattern: "[0-9]*[.,]?[0-9]*"
-    },
-    {
-      name: "category",
-      label: "Kategoria",
-      type: "select",
-      options: data.categories.map((cat) => cat.name)
-    },
-    { name: "image", label: "Obraz URL", type: "url" },
-    { name: "buyLink", label: "Link do produktu", type: "url" },
-  ],
-},
+      products: {
+        title: "produkt",
+        fields: [
+          { name: "name", label: "Nazwa", type: "text", required: true },
+          { name: "description", label: "Opis", type: "textarea" },
+          { name: "price", label: "Cena (zł)", type: "text", pattern: "[0-9]*[.,]?[0-9]*", required: true },
+          { name: "category", label: "Kategoria", type: "select", options: data.categories.map((cat) => cat.name), required: true },
+          { name: "image", label: "Obraz URL", type: "url", required: true },
+          { name: "buyLink", label: "Link do produktu", type: "url", required: true },
+        ],
+      },
       categories: {
         title: "kategorię",
-        fields: [{ name: "name", label: "Nazwa kategorii", type: "text" }],
+        fields: [{ name: "name", label: "Nazwa kategorii", type: "text", required: true }],
       },
       sellers: {
         title: "sprzedawcę",
         fields: [
-          { name: "name", label: "Nazwa", type: "text" },
-          { name: "link", label: "Link do profilu", type: "url" },
-          { 
-            name: "rating", 
-            label: "Ocena (1-5)", 
-            type: "number",
-            min: 1,
-            max: 5,
-            step: 0.1
-          },
-          { name: "image", label: "Obraz URL", type: "url" },
+          { name: "name", label: "Nazwa", type: "text", required: true },
+          { name: "link", label: "Link do profilu", type: "url", required: true },
+          { name: "rating", label: "Ocena (1-5)", type: "number", min: 1, max: 5, step: 0.1, required: true },
+          { name: "image", label: "Obraz URL", type: "url", required: true },
           { name: "description", label: "Opis", type: "textarea" },
+          { name: "isPinned", label: "Przypięty", type: "checkbox" }, // Dodano pole checkbox
         ],
       },
     }[type]
@@ -208,6 +271,7 @@ products: {
             onClick={() => {
               setShowForm({ ...showForm, [type]: false })
               setEditingItem(null)
+              setFormData(defaultFormData) // Resetuj formData po zamknięciu
             }}
             className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
           >
@@ -218,52 +282,61 @@ products: {
           </h3>
           <form onSubmit={(e) => handleSubmit(e, type)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {labels.fields.map((field) => (
-              <div key={field.name} className={`${field.type === "textarea" ? "col-span-2" : ""}`}>
-                <label className="block text-sm font-medium mb-2 text-white/80">{field.label}</label>
+              <div key={field.name} className={`${field.type === "textarea" ? "col-span-2" : field.type === "checkbox" ? "col-span-2 self-center" : ""}`}>
+                {field.type !== "checkbox" && (
+                    <label className="block text-sm font-medium mb-2 text-white/80">{field.label}</label>
+                )}
                 {field.type === "textarea" ? (
                   <textarea
-                    
                     className="w-full p-3 bg-zinc-800/50 border border-zinc-700/50 rounded-lg focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all text-white/90"
                     rows="4"
-                    value={formData[type][field.name]}
+                    value={formData[type][field.name] || ""}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        [type]: {
-                          ...formData[type],
-                          [field.name]: e.target.value,
-                        },
-                      })
+                      setFormData({ ...formData, [type]: { ...formData[type], [field.name]: e.target.value } })
                     }
                   />
-                ) :  field.type === "select" ? (
-                      <select
-                        required
-                        className="w-full p-3 bg-zinc-800/50 border border-zinc-700/50 rounded-lg focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all text-white/90"
-                        value={formData[type][field.name]}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            [type]: {
-                              ...formData[type],
-                              [field.name]: e.target.value,
-                            },
-                          })
-                        }
-                      >
-                        <option value="">Wybierz kategorię</option> {/* Pusty wybór */}
-                        {field.options.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
+                ) : field.type === "select" ? (
+                  <select
+                    required={field.required}
+                    className="w-full p-3 bg-zinc-800/50 border border-zinc-700/50 rounded-lg focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all text-white/90"
+                    value={formData[type][field.name] || ""}
+                    onChange={(e) =>
+                        setFormData({ ...formData, [type]: { ...formData[type], [field.name]: e.target.value } })
+                    }
+                  >
+                    <option value="">Wybierz {labels.title === "produkt" ? "kategorię" : ""}</option>
+                    {field.options && field.options.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : field.type === "checkbox" ? (
+                    <div className="flex items-center gap-2 mt-2">
+                        <input
+                            type="checkbox"
+                            id={`${type}-${field.name}`}
+                            name={field.name}
+                            checked={!!formData[type][field.name]}
+                            onChange={(e) =>
+                                setFormData({
+                                ...formData,
+                                [type]: { ...formData[type], [field.name]: e.target.checked },
+                                })
+                            }
+                            className="h-5 w-5 rounded border-zinc-700/50 bg-zinc-800/50 text-rose-500 focus:ring-rose-500/50 checked:bg-rose-500 checked:hover:bg-rose-600 transition-colors"
+                        />
+                        <label htmlFor={`${type}-${field.name}`} className="text-sm font-medium text-white/80">
+                            {field.label}
+                        </label>
+                    </div>
+                ) : (
                   <input
                     type={field.type}
-                    required
+                    required={field.required}
+                    pattern={field.pattern}
                     className="w-full p-3 bg-zinc-800/50 border border-zinc-700/50 rounded-lg focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all text-white/90"
-                    value={formData[type][field.name]}
+                    value={formData[type][field.name] || ""}
                     onChange={(e) => {
                       let value = e.target.value
                       if (field.type === "number") {
@@ -271,13 +344,7 @@ products: {
                         if (field.min !== undefined) value = Math.max(field.min, value)
                         if (field.max !== undefined) value = Math.min(field.max, value)
                       }
-                      setFormData({
-                        ...formData,
-                        [type]: {
-                          ...formData[type],
-                          [field.name]: value,
-                        },
-                      })
+                      setFormData({ ...formData, [type]: { ...formData[type], [field.name]: value } })
                     }}
                     min={field.min}
                     max={field.max}
@@ -298,13 +365,17 @@ products: {
     )
   }
 
-
   const renderSection = (type) => {
     const config = {
       products: { icon: Package, title: "Produkty", color: "rose" },
       categories: { icon: Tags, title: "Kategorie", color: "blue" },
       sellers: { icon: Users, title: "Sprzedawcy", color: "indigo" },
     }[type];
+
+    const itemsToRender = type === 'sellers' 
+        ? [...data[type]].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || (a.name || "").localeCompare(b.name || ""))
+        : data[type];
+
 
     return (
       <div className="space-y-6">
@@ -322,6 +393,7 @@ products: {
                 ...prev,
                 [type]: { ...defaultFormData[type] },
               }))
+              setEditingItem(null); // Upewnij się, że tryb edycji jest wyłączony
               setShowForm({ ...showForm, [type]: true })
             }}
             className="bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-rose-500/10 hover:shadow-rose-500/20 transition-all"
@@ -331,31 +403,54 @@ products: {
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {data[type].map((item) => (
-          <div key={item._id} className="...">
-            <div className="...">
-              <button
-                onClick={() => {
-                  if (!item) return;
-                  
-                  setEditingItem(item);
-                  setFormData((prev) => ({
-  ...prev,
-  [type]: {
-    ...defaultFormData[type],
-    ...item,
-    ...(type === "products" && item.price !== undefined
-      ? { price: item.price.toString().replace(".", ",") }
-      : {}),
-  },
-}));
-                  setShowForm({ ...showForm, [type]: true });
-                }}
-              >
-                <Edit className="h-4 w-4" />
-              </button>
+          {itemsToRender.map((item) => (
+            <div key={item._id} className="group relative bg-gradient-to-b from-zinc-800/40 to-zinc-900/40 backdrop-blur-sm p-5 rounded-xl border border-zinc-800/50 hover:border-zinc-700/50 transition-all duration-300">
+              <div className="absolute top-3 right-3 flex gap-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {type === "products" && (
+                  <button
+                    onClick={() => handleDuplicate(type, item._id)}
+                    title="Duplikuj"
+                    className="text-sky-400 hover:text-sky-300 p-1.5 bg-zinc-900/70 rounded-lg hover:bg-zinc-800/70 transition-colors"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                )}
+                {type === "sellers" && (
+                  <button
+                    onClick={() => handleTogglePin(item._id, item.isPinned)}
+                    title={item.isPinned ? "Odepnij" : "Przypnij"}
+                    className={`${
+                      item.isPinned ? "text-yellow-400 hover:text-yellow-300" : "text-gray-400 hover:text-gray-300"
+                    } p-1.5 bg-zinc-900/70 rounded-lg hover:bg-zinc-800/70 transition-colors`}
+                  >
+                    {item.isPinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    if (!item) return;
+                    setEditingItem(item);
+                    setFormData((prev) => ({
+                      ...prev,
+                      [type]: {
+                        ...defaultFormData[type],
+                        ...item,
+                        ...(type === "products" && item.price !== undefined
+                          ? { price: item.price.toString().replace(".", ",") }
+                          : {}),
+                        ...(type === "sellers" && { isPinned: !!item.isPinned }), 
+                      },
+                    }));
+                    setShowForm({ ...showForm, [type]: true });
+                  }}
+                  title="Edytuj"
+                  className="text-emerald-400 hover:text-emerald-300 p-1.5 bg-zinc-900/70 rounded-lg hover:bg-zinc-800/70 transition-colors"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
                 <button
                   onClick={() => handleDelete(type, item._id)}
+                  title="Usuń"
                   className="text-rose-400 hover:text-rose-300 p-1.5 bg-zinc-900/70 rounded-lg hover:bg-zinc-800/70 transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -371,12 +466,15 @@ products: {
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
               )}
-              <h3 className="font-semibold text-lg mb-3 text-white group-hover:text-rose-400 transition-colors">
+              <h3 className="font-semibold text-lg mb-3 text-white group-hover:text-rose-400 transition-colors flex items-center">
+                {type === "sellers" && item.isPinned && (
+                  <Pin className="h-4 w-4 text-yellow-400 mr-2 shrink-0" title="Przypięty"/>
+                )}
                 {item.name}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(item)
-                  .filter(([key]) => !["_id", "name", "image"].includes(key))
+                  .filter(([key]) => !["_id", "name", "image", "__v", "isPinned"].includes(key)) // Ukryj isPinned z listy tagów
                   .map(([key, value]) => (
                     <span
                       key={key}
@@ -386,9 +484,9 @@ products: {
                         ? `${value}/5`
                         : key === "price"
                           ? `${value} zł`
-                          : value.length > 20
+                          : typeof value === 'string' && value.length > 20
                             ? `${value.substring(0, 20)}...`
-                            : value}
+                            : String(value)}
                     </span>
                   ))}
               </div>
@@ -396,25 +494,20 @@ products: {
           ))}
         </div>
       </div>
-    ) 
+    )
   }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white p-6 selection:bg-rose-500/30 selection:text-white">
+      {/* Background elements and header - bez zmian */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div
           className="absolute top-0 left-0 w-full h-[70vh] bg-gradient-to-br from-rose-500/10 via-purple-500/5 to-transparent transform translate-y-0"
-          style={{
-            transform: "translate3d(0, 0, 0)",
-            backfaceVisibility: "hidden",
-          }}
+          style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
         />
         <div
           className="absolute bottom-0 right-0 w-full h-[50vh] bg-gradient-to-tl from-blue-500/10 via-indigo-500/5 to-transparent transform translate-y-0"
-          style={{
-            transform: "translate3d(0, 0, 0)",
-            backfaceVisibility: "hidden",
-          }}
+          style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
         />
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-rose-500/5 blur-3xl animate-float-slow" />
@@ -423,6 +516,7 @@ products: {
         </div>
       </div>
       <div className="fixed inset-0 bg-[url('/placeholder.svg?height=200&width=200')] opacity-[0.03] pointer-events-none z-10" />
+
       <div className="max-w-7xl mx-auto relative z-20">
         <div className="mb-8">
           <Link href="/" className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors">
@@ -455,24 +549,16 @@ products: {
                 {tab === "categories" && <Tags className="h-5 w-5" />}
                 {tab === "sellers" && <Users className="h-5 w-5" />}
                 {tab === "history" && <Clock className="h-5 w-5" />}
-                {tab === "products"
-                  ? "Produkty"
-                  : tab === "categories"
-                    ? "Kategorie"
-                    : tab === "sellers"
-                      ? "Sprzedawcy"
-                      : "Historia"}
+                {tab === "products" ? "Produkty" : tab === "categories" ? "Kategorie" : tab === "sellers" ? "Sprzedawcy" : "Historia"}
               </button>
             ))}
           </div>
         </nav>
+
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-zinc-800/30 backdrop-blur-sm p-5 rounded-xl animate-pulse border border-zinc-800/50"
-              >
+              <div key={i} className="bg-zinc-800/30 backdrop-blur-sm p-5 rounded-xl animate-pulse border border-zinc-800/50">
                 <div className="h-48 bg-zinc-700/30 rounded-lg mb-4"></div>
                 <div className="h-6 bg-zinc-700/30 rounded w-3/4 mb-2"></div>
                 <div className="h-4 bg-zinc-700/30 rounded w-1/2"></div>
@@ -486,29 +572,32 @@ products: {
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
                   <Clock className="h-6 w-6 text-rose-400" />
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                    Historia zmian
-                  </span>
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">Historia zmian</span>
                   <span className="text-white/50 ml-1">({data.history.length})</span>
                 </h2>
                 <div className="space-y-4">
-                  {data.history.map((item, index) => (
+                  {data.history.slice().sort((a,b) => new Date(b.date) - new Date(a.date)).map((item, index) => ( // Sort history by date descending
                     <div
                       key={index}
                       className="bg-gradient-to-b from-zinc-800/40 to-zinc-900/40 backdrop-blur-sm p-4 rounded-xl border-l-4 border-rose-500/30 hover:border-rose-500/70 transition-all hover:translate-y-[-2px] hover:shadow-lg hover:shadow-rose-500/5"
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className={cn(
+                           className={cn(
                             "p-2 rounded-lg",
-                            item.type === "products"
-                              ? "bg-rose-500/10 border border-rose-500/20"
-                              : item.type === "categories"
-                                ? "bg-blue-500/10 border border-blue-500/20"
-                                : "bg-indigo-500/10 border border-indigo-500/20",
+                            item.action === "delete" ? "bg-red-500/10 border border-red-500/20" :
+                            item.action === "pinned" || item.action === "unpinned" ? "bg-yellow-500/10 border border-yellow-500/20" :
+                            item.action === "duplicate" ? "bg-sky-500/10 border border-sky-500/20" :
+                            item.type === "products" ? "bg-rose-500/10 border border-rose-500/20" :
+                            item.type === "categories" ? "bg-blue-500/10 border border-blue-500/20" :
+                            "bg-indigo-500/10 border border-indigo-500/20"
                           )}
                         >
-                          {item.type === "products" ? (
+                          {item.action === "pinned" || item.action === "unpinned" ? (
+                            <Pin className="h-5 w-5 text-yellow-400" />
+                          ) : item.action === "duplicate" && item.type === "products" ? (
+                            <Copy className="h-5 w-5 text-sky-400" />
+                           ) : item.type === "products" ? (
                             <Package className="h-5 w-5 text-rose-400" />
                           ) : item.type === "categories" ? (
                             <Tags className="h-5 w-5 text-blue-400" />
@@ -518,12 +607,16 @@ products: {
                         </div>
                         <div>
                           <p className="font-medium text-white/90">
-                            {item.action === "create" ? "Utworzono" : "Usunięto"}{" "}
-                            {item.type === "products"
-                              ? "produkt"
-                              : item.type === "sellers"
-                                ? "sprzedawcę"
-                                : "kategorię"}
+                            {item.action === "create" ? "Utworzono" :
+                             item.action === "update" ? "Zaktualizowano" :
+                             item.action === "delete" ? "Usunięto" :
+                             item.action === "duplicate" ? "Zduplikowano" :
+                             item.action === "pinned" ? "Przypięto" :
+                             item.action === "unpinned" ? "Odpięto" :
+                             "Nieznana akcja"}{" "}
+                            {item.type === "products" ? "produkt" :
+                             item.type === "sellers" ? "sprzedawcę" :
+                             "kategorię"}
                           </p>
                           <p className="text-sm text-white/60 truncate">{item.name}</p>
                           <p className="text-xs text-white/50 mt-1">{new Date(item.date).toLocaleString("pl-PL")}</p>
@@ -541,30 +634,12 @@ products: {
         {showForm.sellers && renderForm("sellers")}
       </div>
       <style jsx global>{`
-        @keyframes floatSlow {
-          0% { transform: translate(0, 0) rotate(0deg); }
-          50% { transform: translate(-20px, 20px) rotate(5deg); }
-          100% { transform: translate(0, 0) rotate(0deg); }
-        }
-        @keyframes floatMedium {
-          0% { transform: translate(0, 0) rotate(0deg); }
-          50% { transform: translate(30px, -20px) rotate(-5deg); }
-          100% { transform: translate(0, 0) rotate(0deg); }
-        }
-        @keyframes floatFast {
-          0% { transform: translate(0, 0) rotate(0deg); }
-          50% { transform: translate(-15px, -25px) rotate(7deg); }
-          100% { transform: translate(0, 0) rotate(0deg); }
-        }
-        .animate-float-slow {
-          animation: floatSlow 20s ease-in-out infinite;
-        }
-        .animate-float-medium {
-          animation: floatMedium 15s ease-in-out infinite;
-        }
-        .animate-float-fast {
-          animation: floatFast 12s ease-in-out infinite;
-        }
+        @keyframes floatSlow { 0% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(-20px, 20px) rotate(5deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
+        @keyframes floatMedium { 0% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(30px, -20px) rotate(-5deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
+        @keyframes floatFast { 0% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(-15px, -25px) rotate(7deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
+        .animate-float-slow { animation: floatSlow 20s ease-in-out infinite; }
+        .animate-float-medium { animation: floatMedium 15s ease-in-out infinite; }
+        .animate-float-fast { animation: floatFast 12s ease-in-out infinite; }
       `}</style>
     </div>
   )
