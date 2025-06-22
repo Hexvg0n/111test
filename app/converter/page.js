@@ -12,6 +12,7 @@ import Navbar from "@/components/navbar"
 // ZMIANA 2: Zaktualizowana konfiguracja z `icon` zamiast `color`
 // Pamiętaj, aby umieścić pliki ikon w folderze /public/icons/
 const middlemenConfig = {
+  acbuy: {name: "ACBuy", icon: "/images/icons/acbuylogo.png", fallbackColor:"green"},
   kakobuy: { name: "Kakobuy", icon: "/images/icons/kakobuy.jpg", fallbackColor: "rose" },
   superbuy: { name: "Superbuy", icon: "/images/icons/superbuy.png", fallbackColor: "blue" },
   cssbuy: { name: "CSSBuy", icon: "/images/icons/cssbuy.png", fallbackColor: "green" },
@@ -21,8 +22,7 @@ const middlemenConfig = {
   cnfans: { name: "CNFans", icon: "/images/icons/cnfans.png", fallbackColor: "rose" },
   joyabuy: { name: "Joyabuy", icon: "/images/icons/joyagoo.png", fallbackColor: "rose" },
   mulebuy: { name: "Mulebuy", icon: "/images/icons/mulebuy.png", fallbackColor: "rose" },
-  hoobuy: { name: "HooBuy", icon: "/images/icons/hoobuy.png", fallbackColor: "violet" },
-  acbuy: {name: "ACBuy", icon: "/images/icons/acbuylogo.png", fallbackColor:"green"}
+  hoobuy: { name: "HooBuy", icon: "/images/icons/hoobuy.png", fallbackColor: "violet" }
 }
 
 

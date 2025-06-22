@@ -25,6 +25,28 @@ const platforms = {
 };
 
 const middlemen = {
+    acbuy: {
+    name: "ACBuy",
+    template: "https://acbuy.com/product?id={{itemID}}&u=dripez&source={{platformIdentifier}}",
+    platformMapping: { // Używane w convertUrlToMiddleman do wypełnienia {{platformIdentifier}}
+      taobao: "TB",
+      weidian: "WD",
+      "1688": "AL"
+      // Tmall nie jest zdefiniowany, więc konwersja dla Tmall do ACBuy zwróci null, co jest poprawne
+    },
+    itemIDPattern: [ // Używane w obu kierunkach konwersji. Musi objąć formaty ID platform i format ID w linku ACBuy.
+      /id=(\d+)/,             // Dla Taobao, Tmall, Weidian (jako parametr), ACBuy (parametr)
+      /\/offer\/(\d+)\.html/, // Dla 1688
+      /itemID=(\d+)/,          // Dla Weidian (parametr)
+      /itemI[dD]=(\d+)/       // Dla Weidian (parametr, z uwzględnieniem wielkości liter)
+    ],
+    requiresDecoding: false,
+    sourceCodeToPlatform: { // Używane w convertMiddlemanToOriginal do mapowania kodu 'source' na nazwę platformy
+      "TB": "taobao",
+      "WD": "weidian",
+      "AL": "1688"
+    }
+  },
   kakobuy: {
     name: "Kakobuy",
     template: "https://www.kakobuy.com/item/details?url={{encodedUrl}}&affcode=dripez",
@@ -152,28 +174,7 @@ const middlemen = {
     requiresDecoding: false
   },
   // NOWY AGENT: ACBUY
-  acbuy: {
-    name: "ACBuy",
-    template: "https://acbuy.com/product?id={{itemID}}&u=dripez&source={{platformIdentifier}}",
-    platformMapping: { // Używane w convertUrlToMiddleman do wypełnienia {{platformIdentifier}}
-      taobao: "TB",
-      weidian: "WD",
-      "1688": "AL"
-      // Tmall nie jest zdefiniowany, więc konwersja dla Tmall do ACBuy zwróci null, co jest poprawne
-    },
-    itemIDPattern: [ // Używane w obu kierunkach konwersji. Musi objąć formaty ID platform i format ID w linku ACBuy.
-      /id=(\d+)/,             // Dla Taobao, Tmall, Weidian (jako parametr), ACBuy (parametr)
-      /\/offer\/(\d+)\.html/, // Dla 1688
-      /itemID=(\d+)/,          // Dla Weidian (parametr)
-      /itemI[dD]=(\d+)/       // Dla Weidian (parametr, z uwzględnieniem wielkości liter)
-    ],
-    requiresDecoding: false,
-    sourceCodeToPlatform: { // Używane w convertMiddlemanToOriginal do mapowania kodu 'source' na nazwę platformy
-      "TB": "taobao",
-      "WD": "weidian",
-      "AL": "1688"
-    }
-  }
+
 };
 
 const platformNameToCode = {
