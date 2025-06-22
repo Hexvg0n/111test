@@ -1,5 +1,7 @@
 "use client"
 import { useState } from "react"
+// ZMIANA 1: Import komponentu Image z Next.js
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -7,19 +9,22 @@ import { Copy, ExternalLink, ArrowRight, LinkIcon, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Navbar from "@/components/navbar"
 
+// ZMIANA 2: Zaktualizowana konfiguracja z `icon` zamiast `color`
+// Pamiętaj, aby umieścić pliki ikon w folderze /public/icons/
 const middlemenConfig = {
-  kakobuy: { name: "Kakobuy", color: "rose" },
-  superbuy: { name: "Superbuy", color: "blue" },
-  cssbuy: { name: "CSSBuy", color: "green" },
-  allchinabuy: { name: "AllChinaBuy", color: "green" },
-  basetao: { name: "Basetao", color: "red" },
-  lovegobuy: { name: "LoveGoBuy", color: "green" },
-  cnfans: { name: "CNFans", color: "rose" },
-  joyabuy: { name: "Joyabuy", color: "rose" },
-  mulebuy: { name: "Mulebuy", color: "rose" },
-  hoobuy: { name: "HooBuy", color: "violet" },
-  acbuy: {name: "ACBuy", color:"green"}
+  kakobuy: { name: "Kakobuy", icon: "/images/icons/kakobuy.jpg", fallbackColor: "rose" },
+  superbuy: { name: "Superbuy", icon: "/images/icons/superbuy.png", fallbackColor: "blue" },
+  cssbuy: { name: "CSSBuy", icon: "/images/icons/cssbuy.png", fallbackColor: "green" },
+  allchinabuy: { name: "AllChinaBuy", icon: "/images/icons/allchina.jpg", fallbackColor: "green" },
+  basetao: { name: "Basetao", icon: "/images/icons/basetao.ico", fallbackColor: "red" },
+  lovegobuy: { name: "LoveGoBuy", icon: "/images/icons/lovego.png", fallbackColor: "green" },
+  cnfans: { name: "CNFans", icon: "/images/icons/cnfans.png", fallbackColor: "rose" },
+  joyabuy: { name: "Joyabuy", icon: "/images/icons/joyagoo.png", fallbackColor: "rose" },
+  mulebuy: { name: "Mulebuy", icon: "/images/icons/mulebuy.png", fallbackColor: "rose" },
+  hoobuy: { name: "HooBuy", icon: "/images/icons/hoobuy.png", fallbackColor: "violet" },
+  acbuy: {name: "ACBuy", icon: "/images/icons/acbuylogo.png", fallbackColor:"green"}
 }
+
 
 export default function ConverterPage() {
   const [inputUrl, setInputUrl] = useState("")
@@ -67,29 +72,29 @@ export default function ConverterPage() {
 
   return (
     <div className="relative bg-[#0A0A0A] min-h-screen text-white selection:bg-rose-500/30 selection:text-white">
-<Navbar/>
+      <Navbar/>
 
       {/* Background effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-{/* Top gradient - bardziej miękkie przejścia */}
-<div
-  className="absolute top-0 left-0 w-full h-[70vh] bg-gradient-to-br from-rose-500/10 from-10% via-purple-500/5 via-40% to-transparent to-90%"
-  style={{
-    transform: "translate3d(0, 0, 0)",
-    backfaceVisibility: "hidden",
-    filter: "blur(20px)",
-  }}
-/>
+        {/* Top gradient - bardziej miękkie przejścia */}
+        <div
+          className="absolute top-0 left-0 w-full h-[70vh] bg-gradient-to-br from-rose-500/10 from-10% via-purple-500/5 via-40% to-transparent to-90%"
+          style={{
+            transform: "translate3d(0, 0, 0)",
+            backfaceVisibility: "hidden",
+            filter: "blur(20px)",
+          }}
+        />
 
-{/* Bottom gradient - rozmyte krawędzie */}
-<div
-  className="absolute bottom-0 right-0 w-full h-[50vh] bg-gradient-to-tl from-purple-500/10 from-10% via-indigo-500/5 via-40% to-transparent to-90%"
-  style={{
-    transform: "translate3d(0, 0, 0)",
-    backfaceVisibility: "hidden",
-    filter: "blur(20px)",
-  }}
-/>
+        {/* Bottom gradient - rozmyte krawędzie */}
+        <div
+          className="absolute bottom-0 right-0 w-full h-[50vh] bg-gradient-to-tl from-purple-500/10 from-10% via-indigo-500/5 via-40% to-transparent to-90%"
+          style={{
+            transform: "translate3d(0, 0, 0)",
+            backfaceVisibility: "hidden",
+            filter: "blur(20px)",
+          }}
+        />
 
         {/* Animated particles */}
         <div className="absolute inset-0">
@@ -198,8 +203,12 @@ export default function ConverterPage() {
               <TabsContent value="all" className="space-y-4">
                 {Object.entries(convertedUrls).map(([key, url]) => {
                   if (key === "original") return null
-                  const middlemanName = middlemenConfig[key]?.name || key
-                  const colorClass = middlemenConfig[key]?.color || "rose"
+                  
+                  // ZMIANA 3: Pobieranie pełnych danych o agencie
+                  const middlemanInfo = middlemenConfig[key]
+                  const middlemanName = middlemanInfo?.name || key
+                  const middlemanIcon = middlemanInfo?.icon
+                  const fallbackColor = middlemanInfo?.fallbackColor || "rose"
 
                   return (
                     <div
@@ -208,7 +217,18 @@ export default function ConverterPage() {
                     >
                       <div className="flex justify-between items-center mb-2">
                         <h3 className="font-medium text-white flex items-center">
-                          <span className={`inline-block w-2 h-2 rounded-full bg-${colorClass}-500 mr-2`}></span>
+                          {/* ZMIANA 4: Logika wyświetlania ikony lub kropki */}
+                          {middlemanIcon ? (
+                            <Image
+                              src={middlemanIcon}
+                              alt={`${middlemanName} logo`}
+                              width={20}
+                              height={20}
+                              className="mr-2 rounded-sm" // Możesz zmienić na rounded-full jeśli wolisz okrągłe ikony
+                            />
+                          ) : (
+                            <span className={`inline-block w-2.5 h-2.5 rounded-full bg-${fallbackColor}-500 mr-2`}></span>
+                          )}
                           {middlemanName}
                         </h3>
                         <div className="flex gap-2">

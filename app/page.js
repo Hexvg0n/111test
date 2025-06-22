@@ -16,7 +16,7 @@ const products = [
     image: "images/maska.png",
     rating: 4.8,
     reviews: 791,
-    link: "https://ikako.vip/zndry",
+    link: "https://acbuy.com/product?id=883481045520&u=dripez&source=TB",
   },
   {
     id: 2,
@@ -25,7 +25,7 @@ const products = [
     image: "images/trackinew.png",
     rating: 4.9,
     reviews: 2256,
-    link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7311979753&affcode=dripez",
+    link: "https://acbuy.com/product?id=7311979753&u=dripez&source=WD",
   },
   {
     id: 3,
@@ -34,7 +34,7 @@ const products = [
     image: "images/forcy.png",
     rating: 4.7,
     reviews: 9289,
-    link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7312892706&affcode=dripez",
+    link: "https://acbuy.com/product?id=7312892706&u=dripez&source=WD",
   },
   {
     id: 4,
@@ -43,7 +43,7 @@ const products = [
     image: "images/slidesystrona.png",
     rating: 4.6,
     reviews: 167,
-    link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D4480454092&affcode=dripez",
+    link: "https://acbuy.com/product?id=4480454092&u=dripez&source=WD",
   },
   {
     id: 5,
@@ -52,7 +52,7 @@ const products = [
     image: "images/airmagi.png",
     rating: 4.9,
     reviews: 312,
-    link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D7313684700&affcode=dripez",
+    link: "https://acbuy.com/product?id=7313684700&u=dripez&source=WD",
   },
   {
     id: 6,
@@ -61,7 +61,7 @@ const products = [
     image: "images/podsywebsite.png",
     rating: 4.0,
     reviews: 98,
-    link: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6953834871&affcode=dripez",
+    link: "https://acbuy.com/product?id=6953834871&u=dripez&source=WD",
   },
 ]
 

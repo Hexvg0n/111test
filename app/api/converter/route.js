@@ -154,7 +154,7 @@ const middlemen = {
   // NOWY AGENT: ACBUY
   acbuy: {
     name: "ACBuy",
-    template: "https://acbuy.com/product?id={{itemID}}&source={{platformIdentifier}}",
+    template: "https://acbuy.com/product?id={{itemID}}&u=dripez&source={{platformIdentifier}}",
     platformMapping: { // Używane w convertUrlToMiddleman do wypełnienia {{platformIdentifier}}
       taobao: "TB",
       weidian: "WD",
