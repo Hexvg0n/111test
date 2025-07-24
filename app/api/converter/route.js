@@ -1,4 +1,3 @@
-// app/api/converter/route.js
 import { NextResponse } from 'next/server';
 
 const platforms = {
@@ -28,20 +27,19 @@ const middlemen = {
     acbuy: {
     name: "ACBuy",
     template: "https://acbuy.com/product?id={{itemID}}&u=dripez&source={{platformIdentifier}}",
-    platformMapping: { // Używane w convertUrlToMiddleman do wypełnienia {{platformIdentifier}}
+    platformMapping: {
       taobao: "TB",
       weidian: "WD",
       "1688": "AL"
-      // Tmall nie jest zdefiniowany, więc konwersja dla Tmall do ACBuy zwróci null, co jest poprawne
     },
-    itemIDPattern: [ // Używane w obu kierunkach konwersji. Musi objąć formaty ID platform i format ID w linku ACBuy.
-      /id=(\d+)/,             // Dla Taobao, Tmall, Weidian (jako parametr), ACBuy (parametr)
-      /\/offer\/(\d+)\.html/, // Dla 1688
-      /itemID=(\d+)/,          // Dla Weidian (parametr)
-      /itemI[dD]=(\d+)/       // Dla Weidian (parametr, z uwzględnieniem wielkości liter)
+    itemIDPattern: [
+      /id=(\d+)/,
+      /\/offer\/(\d+)\.html/,
+      /itemID=(\d+)/,
+      /itemI[dD]=(\d+)/
     ],
     requiresDecoding: false,
-    sourceCodeToPlatform: { // Używane w convertMiddlemanToOriginal do mapowania kodu 'source' na nazwę platformy
+    sourceCodeToPlatform: {
       "TB": "taobao",
       "WD": "weidian",
       "AL": "1688"
@@ -120,7 +118,7 @@ const middlemen = {
       taobao: "taobao",
       "1688": "1688",
       weidian: "weidian",
-      tmall: "tmall" // Dodano tmall dla spójności, jeśli obsługują
+      tmall: "tmall"
     },
     itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/, /itemI[dD]=(\d+)/],
     requiresDecoding: false
@@ -132,7 +130,7 @@ const middlemen = {
       taobao: "taobao",
       "1688": "ali_1688",
       weidian: "weidian",
-      tmall: "tmall" // Dodano tmall dla spójności, jeśli obsługują
+      tmall: "tmall"
     },
     itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/, /itemI[dD]=(\d+)/],
     requiresDecoding: false
@@ -144,7 +142,7 @@ const middlemen = {
       taobao: "taobao",
       "1688": "ali_1688",
       weidian: "weidian",
-      tmall: "tmall" // Dodano tmall dla spójności, jeśli obsługują
+      tmall: "tmall"
     },
     itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/, /itemI[dD]=(\d+)/],
     requiresDecoding: false
@@ -156,7 +154,7 @@ const middlemen = {
       taobao: "taobao",
       "1688": "ali_1688",
       weidian: "weidian",
-      tmall: "tmall" // Dodano tmall dla spójności, jeśli obsługują
+      tmall: "tmall"
     },
     itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/, /itemI[dD]=(\d+)/],
     requiresDecoding: false
@@ -164,7 +162,7 @@ const middlemen = {
   hoobuy: {
     name: "HooBuy",
     template: "https://hoobuy.com/product/{{platformCode}}/{{itemID}}?inviteCode=w8ow9ZB8",
-    platformMapping: { // To mapowanie jest używane inaczej przez HooBuy (z platformCode)
+    platformMapping: {
       '0': 'detail.1688.com',
       '1': 'item.taobao.com',
       '2': 'weidian.com',
@@ -173,8 +171,6 @@ const middlemen = {
     itemIDPattern: [/product\/(\d+)\/(\d+)/, /id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/, /itemI[dD]=(\d+)/],
     requiresDecoding: false
   },
-  // NOWY AGENT: ACBUY
-
 };
 
 const platformNameToCode = {
@@ -184,7 +180,6 @@ const platformNameToCode = {
   'tmall': '3'
 };
 
-// DODANO: Mapowanie kodu na nazwę platformy, potrzebne dla HooBuy w convertMiddlemanToOriginal
 const codeToPlatformName = {
   '0': '1688',
   '1': 'taobao',
@@ -197,23 +192,15 @@ function extractItemID(url, patterns) {
   for (const pattern of patterns) {
     const match = decodedUrl.match(pattern);
     if (match) {
-      if (match.length > 2 && pattern.source.includes('(') && pattern.source.indexOf('(') < pattern.source.lastIndexOf('(') ) { // Lepsze sprawdzenie dla wielu grup
-        // Jeśli wzorzec ma co najmniej dwie grupy przechwytujące, zakładamy format { platformCode: match[1], itemID: match[2] }
-        // np. dla hoobuy /product/(platformCode)/(itemID)/ lub cssbuy /item-(platform)-(itemID).html
-        // To sprawdzenie można ulepszyć, jeśli wzorce staną się bardziej złożone.
-        // Na razie zakładamy, że jeśli są dwie grupy, to pierwsza jest kodem/identyfikatorem platformy, a druga itemID.
+      if (match.length > 2 && pattern.source.includes('(') && pattern.source.indexOf('(') < pattern.source.lastIndexOf('(') ) {
         if (pattern.source.includes('item-(taobao|1688|micro|tmall)-') || pattern.source.includes('agent\\/(taobao|tmall|1688|weidian)\\/')) {
-             return { platformCode: match[1], itemID: match[2] }; // Dla CSSBuy i Basetao
+             return { platformCode: match[1], itemID: match[2] };
         } else if (pattern.source.includes('product\\/(\\d+)\\/(\\d+)')) {
-             return { platformCode: match[1], itemID: match[2] }; // Dla HooBuy
+             return { platformCode: match[1], itemID: match[2] };
         }
-        // Dla innych wzorców z wieloma grupami, które mogą nie być platformCode/itemID,
-        // np. jeśli wzorzec przypadkowo przechwyci coś innego.
-        // Bezpieczniej jest zwrócić tylko itemID, jeśli nie jesteśmy pewni struktury.
-        // Jednak obecne wzorce z wieloma grupami są specyficzne.
-        return { platformCode: match[1], itemID: match[2] }; // Domyślne zachowanie dla >2 grup
+        return { platformCode: match[1], itemID: match[2] };
       }
-      return { itemID: match[1] }; // Domyślnie pierwsza grupa to itemID
+      return { itemID: match[1] };
     }
   }
   return null;
@@ -223,29 +210,21 @@ function decodeUrlIfNeeded(url, middleman) {
   if (middleman.requiresDecoding) {
     try {
       if (typeof url !== 'string' || !url.startsWith('http')) {
-        // Spróbuj zdekodować, nawet jeśli nie jest to pełny URL, może to być tylko parametr
         const decodedAttempt = decodeURIComponent(url);
-        if (decodedAttempt.startsWith('http')) return decodedAttempt; // Jeśli po dekodowaniu jest to URL
-        // Jeśli nie, kontynuuj próbę parsowania jako URL w poszukiwaniu parametru 'url'
+        if (decodedAttempt.startsWith('http')) return decodedAttempt;
       }
       const urlObj = new URL(url);
       const urlParam = urlObj.searchParams.get('url');
       return urlParam ? decodeURIComponent(urlParam) : url;
     } catch (error) {
-      // Jeśli parsowanie jako URL zawiedzie, ale jest to string, spróbuj prostego dekodowania
       if (typeof url === 'string') {
         try {
             const decodedFallback = decodeURIComponent(url);
-            // Sprawdź, czy zdekodowany URL jest prawdopodobny (np. zaczyna się od http)
-            // lub zawiera typowe fragmenty linków platform
-            if (decodedFallback.startsWith('http') || plataformas.some(p => decodedFallback.includes(p))) {
+            if (decodedFallback.startsWith('http') || Object.keys(platforms).some(p => decodedFallback.includes(p))) {
                 return decodedFallback;
             }
-        } catch (e2) {
-            // Ignoruj błąd fallbacku dekodowania
-        }
+        } catch (e2) {}
       }
-      console.error('Invalid URL or error during decoding:', error.message, "URL:", url);
       return url;
     }
   }
@@ -262,25 +241,19 @@ function identifyPlatform(url) {
 function convertMiddlemanToOriginal(url) {
   for (const [middlemanName, middleman] of Object.entries(middlemen)) {
     const aliases = [middlemanName, ...(middleman.aliases || [])];
-    if (aliases.some(alias => url.toLowerCase().includes(alias.toLowerCase()))) { // Sprawdzanie case-insensitive
+    if (aliases.some(alias => url.toLowerCase().includes(alias.toLowerCase()))) {
       const processedUrl = decodeUrlIfNeeded(url, middleman);
       const extracted = extractItemID(processedUrl, middleman.itemIDPattern);
-
       if (extracted) {
         let platformName = null;
         let itemID = null;
-
-        // Logika przypisania itemID i potencjalnie platformCode
         if (extracted.itemID) itemID = extracted.itemID;
-
-
         if (middlemanName === 'hoobuy') {
           if (extracted.platformCode && extracted.itemID) {
-            platformName = codeToPlatformName[extracted.platformCode]; // Użycie dodanej mapy
+            platformName = codeToPlatformName[extracted.platformCode];
             itemID = extracted.itemID;
           }
         } else if (middlemanName === 'cssbuy') {
-          // Dla CSSBuy, extractItemID z odpowiednim wzorcem powinien zwrócić platformCode i itemID
           if (extracted.platformCode && extracted.itemID) {
              const cssPlatformToStandard = { taobao: 'taobao', '1688': '1688', micro: 'weidian', tmall: 'tmall' };
              platformName = cssPlatformToStandard[extracted.platformCode];
@@ -288,11 +261,11 @@ function convertMiddlemanToOriginal(url) {
           }
         } else if (middlemanName === 'basetao') {
              if (extracted.platformCode && extracted.itemID) {
-                 platformName = extracted.platformCode; // platformCode to tutaj bezpośrednio nazwa platformy
+                 platformName = extracted.platformCode;
                  itemID = extracted.itemID;
              }
-        } else if (middlemanName === 'acbuy' && middleman.sourceCodeToPlatform) { // NOWA LOGIKA DLA ACBUY
-            if (itemID) { // itemID powinno być już wyekstrahowane
+        } else if (middlemanName === 'acbuy' && middleman.sourceCodeToPlatform) {
+            if (itemID) {
                 const sourceMatch = processedUrl.match(/[?&]source=([^&]+)/);
                 if (sourceMatch && sourceMatch[1]) {
                     const sourceCode = sourceMatch[1];
@@ -300,9 +273,7 @@ function convertMiddlemanToOriginal(url) {
                 }
             }
         } else {
-          // Ogólna logika dla innych pośredników
-          if (itemID) { // Jeśli itemID zostało wyekstrahowane
-            // Próba identyfikacji platformy na podstawie platformMapping lub zdekodowanego URL
+          if (itemID) {
             if (middleman.platformMapping && typeof middleman.platformMapping === 'object') {
               for (const [platformKey, platformValueInMap] of Object.entries(middleman.platformMapping)) {
                 if (processedUrl.includes(platformValueInMap) && platforms[platformKey]) {
@@ -312,14 +283,7 @@ function convertMiddlemanToOriginal(url) {
               }
             }
             if (!platformName && middleman.requiresDecoding) {
-              // Jeśli to był zakodowany URL, processedUrl powinien być oryginalnym linkiem
               platformName = identifyPlatform(processedUrl);
-            } else if (!platformName && !middleman.requiresDecoding) {
-                // Jeśli nie wymaga dekodowania, a URL nie zawierał informacji o platformie w mapowaniu
-                // np. dla agentów, którzy mają ID w ścieżce, ale nie platformę
-                // Można by spróbować zidentyfikować platformę, jeśli `processedUrl` jest oryginalnym linkiem
-                // (co jest mniej prawdopodobne, jeśli `requiresDecoding` jest false)
-                // Na tym etapie, jeśli platforma nie jest znana, może być trudno ją ustalić.
             }
           }
         }
@@ -337,104 +301,80 @@ function convertUrlToMiddleman(originalUrlInput, middlemanKey) {
   const middleman = middlemen[middlemanKey];
   if (!middleman) return null;
 
-  // Url przekazany do tej funkcji to często oryginalny url wejściowy,
-  // który może być już linkiem pośrednika lub oryginalnym linkiem platformy.
-  // Dekodowanie tutaj jest bardziej dla przypadków, gdyby jakiś pośrednik kodował URL w nietypowy sposób,
-  // a ta funkcja była wywoływana z takim URL-em.
-  // Zazwyczaj `originalUrlInput` jest albo czystym linkiem platformy, albo linkiem innego pośrednika.
-  let urlToParse = decodeUrlIfNeeded(originalUrlInput, middleman); // Dekoduj, jeśli middleman tego wymaga (rzadkie w tym kontekście)
-
-  const platformName = identifyPlatform(urlToParse); // Identyfikuj platformę z (potencjalnie zdekodowanego) URL
-  
-  // Ekstrakcja ID produktu z urlToParse. Używamy wzorców platformy, jeśli jest znana,
-  // w przeciwnym razie próbujemy ogólnych wzorców z middleman.itemIDPattern.
+  let urlToParse = decodeUrlIfNeeded(originalUrlInput, middleman);
+  const platformName = identifyPlatform(urlToParse);
   let extraction;
   if (platformName && platforms[platformName]) {
       extraction = extractItemID(urlToParse, platforms[platformName].itemIDPattern);
   } else {
-      // Jeśli platforma nie została zidentyfikowana (np. urlToParse to link pośrednika),
-      // spróbuj wyciągnąć ID używając wzorców danego pośrednika, które są zwykle bardziej ogólne.
       extraction = extractItemID(urlToParse, middleman.itemIDPattern);
   }
 
   if (!extraction?.itemID) return null;
-
-  // Jeśli platformName nadal nie jest znane (bo urlToParse nie był oryginalnym linkiem),
-  // a szablon pośrednika wymaga informacji o platformie (np. ACBuy, HooBuy), to konwersja może się nie udać.
-  if (!platformName &&
-      (middleman.template.includes("{{platformDomain}}") ||
-       middleman.template.includes("{{cssPlatform}}") ||
-       middleman.template.includes("{{platformIdentifier}}") ||
-       middlemanKey === 'hoobuy') // HooBuy potrzebuje platformCode, który pochodzi z platformName
-     ) {
-      // Nie można ustalić platformy źródłowej, a jest ona wymagana przez szablon pośrednika.
+  if (!platformName && (middleman.template.includes("{{platform") || middlemanKey === 'hoobuy')) {
       return null;
   }
-
-
   if (middlemanKey === 'hoobuy') {
-    if (!platformName) return null; // HooBuy wymaga platformName do uzyskania platformCode
+    if (!platformName) return null;
     const platformCode = platformNameToCode[platformName];
-    if (!platformCode) return null; // Nieznany kod platformy dla HooBuy
+    if (!platformCode) return null;
     return middleman.template
       .replace('{{platformCode}}', platformCode)
       .replace('{{itemID}}', extraction.itemID);
   }
 
-  // Sprawdzenie, czy mapowanie platformy jest dostępne, jeśli jest wymagane przez szablon
   const platformMappedValue = platformName ? (middleman.platformMapping ? middleman.platformMapping[platformName] : undefined) : undefined;
-
-  if (!platformMappedValue &&
-      platformName && // Tylko jeśli platformName jest znane, ale nie ma dla niego mapowania
-      (middleman.template.includes('{{platformDomain}}') ||
-       middleman.template.includes('{{cssPlatform}}') ||
-       middleman.template.includes('{{platformIdentifier}}'))
-     ) {
-      // Platforma jest znana, ale pośrednik jej nie mapuje (np. ACBuy nie mapuje Tmall)
+  if (!platformMappedValue && platformName && (middleman.template.includes('{{platform'))) {
       return null;
   }
   
-  let resultUrl = middleman.template
-    .replace(new RegExp('{{itemID}}', 'g'), extraction.itemID); // Zastąp wszystkie {{itemID}}
-
+  let resultUrl = middleman.template.replace(new RegExp('{{itemID}}', 'g'), extraction.itemID);
   if (resultUrl.includes('{{encodedUrl}}')) {
-    // originalUrlInput to oryginalny URL przekazany do funkcji (przed jakimkolwiek dekodowaniem w tej funkcji)
     resultUrl = resultUrl.replace(new RegExp('{{encodedUrl}}', 'g'), encodeURIComponent(originalUrlInput));
   }
-
   if (platformMappedValue) {
     resultUrl = resultUrl.replace(new RegExp('{{platformDomain}}', 'g'), platformMappedValue);
     resultUrl = resultUrl.replace(new RegExp('{{cssPlatform}}', 'g'), platformMappedValue);
     resultUrl = resultUrl.replace(new RegExp('{{platformIdentifier}}', 'g'), platformMappedValue);
-  } else if (platformName && !platformMappedValue &&
-             (middleman.template.includes('{{platformDomain}}') ||
-              middleman.template.includes('{{cssPlatform}}') ||
-              middleman.template.includes('{{platformIdentifier}}'))) {
-        // Jeśli mapowanie było wymagane, ale go nie było, powinniśmy byli już zwrócić null.
-        // To jest dodatkowe zabezpieczenie, ale wcześniejsza logika powinna to obsłużyć.
+  } else if (platformName && !platformMappedValue && (middleman.template.includes('{{platform'))) {
         return null;
   }
-
-
-  // Jeśli po wszystkich zamianach pozostały jakieś niechciane placeholdery, to jest problem
   if (resultUrl.includes("{{") && resultUrl.includes("}}")) {
-      // To może oznaczać, że `platformName` było null, a szablon zawierał placeholder platformy,
-      // który nie został obsłużony przez powyższą logikę (np. `platformMappedValue` było undefined).
-      // Lub `extraction.itemID` był null/pusty.
-      console.warn(`URL ${middlemanKey} może zawierać niezastąpione placeholdery: ${resultUrl}`);
-      // Zdecyduj, czy zwrócić null, czy taki częściowo wypełniony URL. Bezpieczniej null.
-      if (!platformName && (resultUrl.includes("{{platform") || resultUrl.includes("{{cssPlatform}}") || resultUrl.includes("{{platformIdentifier}}"))) return null;
-
+      if (!platformName && (resultUrl.includes("{{platform"))) return null;
   }
-
   return resultUrl;
 }
 
+// ====================================================================
+// NOWY ENDPOINT GET - DO POBIERANIA LISTY AGENTÓW
+// ====================================================================
+export async function GET() {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json'
+  };
+
+  try {
+    const agents = Object.entries(middlemen).map(([key, value]) => ({
+      key: key,
+      name: value.name
+    }));
+
+    return NextResponse.json({ agents }, { headers });
+  } catch (error) {
+    console.error('Błąd API GET:', error);
+    return NextResponse.json({ error: 'Wewnętrzny błąd serwera' }, { status: 500, headers });
+  }
+}
+
+// ====================================================================
+// ZAKTUALIZOWANY ENDPOINT POST - DLA LEPSZEJ OBSŁUGI NA STRONIE
+// ====================================================================
 export async function POST(request) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization', // Dodano Authorization na wszelki wypadek
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Content-Type': 'application/json'
   };
 
@@ -455,35 +395,41 @@ export async function POST(request) {
       }
     }
 
-    const convertedUrls = { original: originalProductUrl || url };
-
-    // Jeśli mamy `originalProductUrl`, używamy go do konwersji na linki pośredników.
-    // Jeśli nie, próbujemy z wejściowym `url` - niektóre konwersje mogą się nie udać.
+    const convertedLinks = [];
     const baseLinkForMiddlemen = originalProductUrl || url;
 
-    for (const middlemanKey of Object.keys(middlemen)) {
-      // Przekazujemy `baseLinkForMiddlemen` do konwersji.
-      // Jeśli `baseLinkForMiddlemen` jest linkiem innego pośrednika, `convertUrlToMiddleman`
-      // spróbuje go zinterpretować. Jeśli jest to oryginalny link, zadziała najlepiej.
+    for (const [middlemanKey, middlemanValue] of Object.entries(middlemen)) {
       const convertedUrl = convertUrlToMiddleman(baseLinkForMiddlemen, middlemanKey);
       if (convertedUrl) {
-        convertedUrls[middlemanKey] = convertedUrl;
+        convertedLinks.push({
+          key: middlemanKey,
+          name: middlemanValue.name,
+          url: convertedUrl
+        });
       }
     }
 
-    return NextResponse.json(convertedUrls, { headers });
+    const responsePayload = {
+      originalUrl: originalProductUrl || "Nie udało się zidentyfikować oryginalnego linku.",
+      convertedLinks: convertedLinks
+    };
+
+    return NextResponse.json(responsePayload, { headers });
   } catch (error) {
-    console.error('Błąd API:', error, error.stack);
+    console.error('Błąd API POST:', error);
     return NextResponse.json({ error: 'Wewnętrzny błąd serwera', details: error.message }, { status: 500, headers });
   }
 }
 
+// ====================================================================
+// ENDPOINT OPTIONS - DLA OBSŁUGI CORS
+// ====================================================================
 export async function OPTIONS() {
   return NextResponse.json(null, {
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, DELETE, PUT', // Dodano więcej metod dla ogólności
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization' // Spójne z POST
+      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, DELETE, PUT',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     }
   });
 }

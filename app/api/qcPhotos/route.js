@@ -1,7 +1,6 @@
+// app/api/qcPhotos/route.js
 import { NextResponse } from 'next/server';
 import axios from 'axios';
-
-const KAKOBUY_TOKEN = process.env.KAKOBUY_TOKEN;
 
 const securityHeaders = {
   'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
@@ -11,64 +10,65 @@ const securityHeaders = {
   'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload'
 };
 
+/**
+ * Przetwarza dane z API vectoreps na format oczekiwany przez frontend.
+ * @param {object} apiData - Dane otrzymane z API.
+ * @returns {Array} - Tablica grup zdjęć.
+ */
 const processPhotos = (apiData) => {
-  if (!Array.isArray(apiData)) return [];
+  const groups = [];
+
+  if (apiData?.cnfans?.qc_data?.success && Array.isArray(apiData.cnfans.qc_data.data)) {
+    // POPRAWKA: Dodajemy `index` do pętli, aby go użyć w tytule
+    apiData.cnfans.qc_data.data.forEach((order, index) => {
+      if (order.image_list && order.image_list.length > 0) {
+        groups.push({
+          // POPRAWKA: Zmiana nazwy wariantu na "Partia [numer]"
+          variant: `Partia ${index + 1}`, 
+          photos: order.image_list,
+          timestamp: new Date().getTime() 
+        });
+      }
+    });
+  }
   
-  return apiData.reduce((acc, item) => {
-    const imageUrl = item?.image_url?.trim();
-    if (!imageUrl?.startsWith('https')) return acc;
-
-    const qcDate = item?.qc_date?.split(' ')[0] || 'no-date';
-    const batch = item?.batch ? `Batch: ${item.batch} | ` : '';
-    const variant = `${batch}QC ${qcDate}`;
-
-    acc[qcDate] = acc[qcDate] || {
-      variant,
-      photos: [],
-      timestamp: new Date(qcDate).getTime() || Date.now()
-    };
-
-    acc[qcDate].photos.push(imageUrl);
-    return acc;
-  }, {});
+  return groups;
 };
 
+// ... reszta pliku pozostaje bez zmian (funkcje POST i OPTIONS)
 export async function POST(request) {
   try {
     const body = await request.json();
     
     if (!body?.url) {
       return NextResponse.json({ 
-        status: 'error', message: 'Goods URL is required' 
+        status: 'error', message: 'Link do produktu jest wymagany' 
       }, { status: 400, headers: securityHeaders });
     }
 
-    if (!KAKOBUY_TOKEN) {
-      return NextResponse.json({ 
-        status: 'error', message: 'Token is required' 
-      }, { status: 500, headers: securityHeaders });
-    }
-
     const encodedUrl = encodeURIComponent(body.url);
+    const apiUrl = `https://dev.vectoreps.pl/api/api/qc?url=${encodedUrl}`;
 
-    // Attempt POST with JSON body (as per example in documentation)
-    const response = await axios.post('https://open.kakobuy.com/open/pic/qcImage', {
-      token: KAKOBUY_TOKEN,
-      goodsUrl: encodedUrl
-    }, {
+    const response = await axios.get(apiUrl, {
       headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
       },
-      timeout: 15000
+      timeout: 20000
     });
 
-    if (response.data.status === 'error') {
-      return NextResponse.json(response.data, { status: 400, headers: securityHeaders });
+    if (!response.data.success) {
+      throw new Error(response.data.msg || 'Błąd podczas pobierania danych z API QC');
     }
 
-    const processedPhotos = processPhotos(response.data.data);
-    const groups = Object.values(processedPhotos).sort((a, b) => b.timestamp - a.timestamp);
+    const groups = processPhotos(response.data);
+
+    if (groups.length === 0) {
+        return NextResponse.json({
+            status: 'error',
+            message: 'Nie znaleziono zdjęć QC dla tego produktu w dostępnych źródłach.'
+        }, { status: 404, headers: securityHeaders });
+    }
 
     return NextResponse.json({ 
       status: 'success', 
@@ -78,25 +78,19 @@ export async function POST(request) {
   } catch (error) {
     console.error('API Error:', error);
     
-    if (error?.response?.data?.message) {
-      return NextResponse.json({
-        status: 'error',
-        message: error.response.data.message
-      }, {
-        status: error.response.status || 500,
-        headers: securityHeaders
-      });
-    }
+    const errorMessage = error.response?.data?.message || error.message || 'Wewnętrzny błąd serwera';
+    const errorStatus = error.response?.status || 500;
 
     return NextResponse.json({
       status: 'error',
-      message: 'Internal server error'
+      message: errorMessage
     }, {
-      status: 500,
+      status: errorStatus,
       headers: securityHeaders
     });
   }
 }
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     headers: {
